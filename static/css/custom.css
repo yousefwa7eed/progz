@@ -160,6 +160,20 @@ body {
     white-space: nowrap;
     width: 1%;
 }
+.actions-cell .btn {
+    min-width: 38px;
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem 0.5rem;
+}
+@media (max-width: 768px) {
+    .actions-cell .btn {
+        min-width: 44px;
+        min-height: 44px;
+    }
+}
 
 .empty-state {
     text-align: center;

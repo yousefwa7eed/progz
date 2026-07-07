@@ -58,9 +58,9 @@ class CaseCreateView(LoginRequiredMixin, CreateView):
         if beneficiary_id:
             from apps.beneficiaries.models import Beneficiary
             try:
-                initial['beneficiary'] = Beneficiary.objects.get(id=beneficiary_id)
-            except:
-                pass
+                initial['beneficiary'] = Beneficiary.objects.get(id=beneficiary_id, is_active=True)
+            except Beneficiary.DoesNotExist:
+                messages.warning(self.request, 'المستفيد المطلوب غير موجود')
         return initial
 
     def get_success_url(self):
@@ -81,7 +81,7 @@ class CaseCreateView(LoginRequiredMixin, CreateView):
                 if name and value:
                     CaseFeature.objects.create(case=self.object, name=name, value=value)
         except json.JSONDecodeError:
-            pass
+            messages.warning(self.request, 'لم نتمكن من قراءة الخصائص المدخلة، يرجى التحقق من التنسيق')
         CaseActivity.objects.create(
             case=self.object,
             activity_type='create',

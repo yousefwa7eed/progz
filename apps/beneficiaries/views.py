@@ -11,8 +11,7 @@ from django.utils import timezone
 import openpyxl
 from openpyxl.styles import Font, Alignment
 from fpdf import FPDF
-import arabic_reshaper
-from bidi.algorithm import get_display
+from apps.utils.pdf_helpers import ar, get_arabic_font
 from .models import Beneficiary
 from apps.cases.models import Case
 from apps.donations.models import Donation
@@ -209,21 +208,8 @@ def beneficiary_export_detail_excel(request, pk):
 @login_required
 def beneficiary_export_detail_pdf(request, pk):
     b = get_object_or_404(Beneficiary, pk=pk)
-    import os
 
-    def ar(text):
-        return get_display(arabic_reshaper.reshape(str(text)))
-
-    font_path = bold_path = 'C:/Windows/Fonts/arial.ttf'
-    for fp in ['C:/Windows/Fonts/arial.ttf', 'C:/Windows/Fonts/arabtype.ttf',
-               'C:/Windows/Fonts/trado.ttf']:
-        if os.path.exists(fp):
-            font_path = fp
-            bold_path = fp
-            if 'arial' in fp.lower():
-                bold_path = 'C:/Windows/Fonts/arialbd.ttf'
-            break
-
+    font_path, bold_path = get_arabic_font()
     pdf = FPDF()
     pdf.set_auto_page_break(auto=True, margin=28)
     pdf.add_font('ArFont', '', font_path)

@@ -8,8 +8,7 @@ from django.utils import timezone
 import openpyxl
 from openpyxl.styles import Font, Alignment
 from fpdf import FPDF
-import arabic_reshaper
-from bidi.algorithm import get_display
+from apps.utils.pdf_helpers import ar, get_arabic_font
 from .models import Occasion, OccasionMember, OccasionTask
 from .forms import OccasionForm, BulkMemberAddForm, TaskForm
 from apps.cases.models import Case
@@ -192,21 +191,7 @@ def task_delete(request, pk, member_pk, task_pk):
 @login_required
 def occasion_export_pdf(request, pk):
     occasion = get_object_or_404(Occasion.objects.prefetch_related('members__tasks', 'members__case__beneficiary', 'members__beneficiary'), pk=pk)
-    import os
-
-    def ar(text):
-        return get_display(arabic_reshaper.reshape(str(text)))
-
-    font_path = 'C:/Windows/Fonts/arial.ttf'
-    bold_path = 'C:/Windows/Fonts/arialbd.ttf'
-    for fp in ['C:/Windows/Fonts/arial.ttf', 'C:/Windows/Fonts/arabtype.ttf',
-               'C:/Windows/Fonts/trado.ttf']:
-        if os.path.exists(fp):
-            font_path = fp
-            bold_path = fp
-            if 'arial' in fp.lower():
-                bold_path = 'C:/Windows/Fonts/arialbd.ttf'
-            break
+    font_path, bold_path = get_arabic_font()
 
     class PDFWithHeader(FPDF):
         def header(self):

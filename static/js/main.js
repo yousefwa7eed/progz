@@ -1,5 +1,6 @@
 $(document).ready(function() {
     $('.datatable').each(function() {
+        if ($(this).data('paginate') === 'server') return;
         if (!$.fn.DataTable.isDataTable(this)) {
             $(this).DataTable({
                 language: {
@@ -8,7 +9,9 @@ $(document).ready(function() {
                 },
                 responsive: true,
                 pageLength: 25,
-                ordering: true
+                ordering: true,
+                paging: $(this).data('client-paginate') !== false,
+                info: $(this).data('client-paginate') !== false,
             });
         }
     });

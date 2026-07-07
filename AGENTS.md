@@ -3,7 +3,7 @@
 ## Goal
 تشغيل نظام Django كتطبيق ديسكتوب مستقل (بدون متصفح أو Python) عبر `pywebview` + `waitress`.
 
-**آخر تحديث: تم تغيير الملكية من "جمعية الإخلاص الخيرية" إلى "مؤسسة الماجد".**
+**آخر تحديث: الخميس 8 يوليو 2026 — إصلاحات أمان، قاعدة بيانات، جودة كود، واختبارات**
 
 ## Architecture
 - `desktop_app.py` يشغّل خادم `waitress` WSGI على `127.0.0.1:8500` داخل thread
@@ -13,19 +13,35 @@
 ## Key Files
 - `D:\projects\ekhlas\desktop_app.py` - المُشغّل الرئيسي
 - `D:\projects\ekhlas\config\settings.py` - إعدادات Django الأصلية
-- `D:\projects\ekhlas\apps\occasions\views.py` - كود التصدير (PDF تم إصلاح مشكلة العربية)
-- `D:\projects\ekhlas\apps\beneficiaries\views.py` - تصدير PDF للمستفيدين
+- `D:\projects\ekhlas\apps\utils\pdf_helpers.py` - دوال PDF المشتركة (ar, get_arabic_font)
+- `D:\projects\ekhlas\apps\occasions\views.py` - كود التصدير (يستخدم pdf_helpers)
+- `D:\projects\ekhlas\apps\beneficiaries\views.py` - تصدير PDF للمستفيدين (يستخدم pdf_helpers)
+- `D:\projects\ekhlas\static\fonts\Amiri-Regular.ttf` - خط عربي مجاني مضمّن
+- `D:\projects\ekhlas\static\fonts\Amiri-Bold.ttf` - خط عريان مجاني مضمّن
+- `D:\projects\ekhlas\.env` - المتغيرات البيئية (ممنوع نشره)
+- `D:\projects\ekhlas\requirements-pinned.txt` - قائمة الحزم بأرقام الإصدارات المثبتة
+- `D:\projects\ekhlas\build.ps1` - سكربت بناء مؤتمت
 - `D:\projects\ekhlas\dist\AlmajidApp\AlmajidApp.exe` - الملف التنفيذي النهائي
 - `D:\projects\ekhlas\dist\AlmajidApp\_internal` - مجلد الاعتماديات (db.sqlite3, templates, static, apps/occasions/templates)
 
-## PyInstaller Build Command
+## Build Script (مستحسن)
 ```powershell
-python -m PyInstaller --onedir --windowed --noconfirm --icon="static\images\icon.ico" --name="AlmajidApp" --add-data="templates;templates" --add-data="static;static" --add-data="media;media" --add-data="db.sqlite3;." --add-data="apps\occasions\templates;apps\occasions\templates" --runtime-hook="rthook_importlib_metadata.py" --exclude-module=matplotlib --exclude-module=scipy --exclude-module=pandas --exclude-module=notebook --exclude-module=IPython --exclude-module=PyQt5 --hidden-import=pyotp --hidden-import=qrcode --hidden-import=openpyxl --hidden-import=fpdf --hidden-import=arabic_reshaper --hidden-import=bidi --copy-metadata="django-auditlog" desktop_app.py
+cd D:\projects\ekhlas
+.\build.ps1
 ```
 
-**ملاحظة**: يجب تشغيل الأمر من داخل مجلد `D:\projects\ekhlas`.
+Or to skip tests:
+```powershell
+cd D:\projects\ekhlas
+.\build.ps1 -SkipTests
+```
 
-## ## Runtime Hook (`rthook_importlib_metadata.py`)
+## PyInstaller Build Command (يدوي)
+```powershell
+python -m PyInstaller --onedir --windowed --noconfirm --icon="static\images\icon.ico" --name="AlmajidApp" --add-data="templates;templates" --add-data="static;static" --add-data="media;media" --add-data="db.sqlite3;." --add-data="apps\occasions\templates;apps\occasions\templates" --add-data="static\fonts;static\fonts" --runtime-hook="rthook_importlib_metadata.py" --exclude-module=matplotlib --exclude-module=scipy --exclude-module=pandas --exclude-module=notebook --exclude-module=IPython --exclude-module=PyQt5 --hidden-import=pyotp --hidden-import=qrcode --hidden-import=openpyxl --hidden-import=fpdf --hidden-import=arabic_reshaper --hidden-import=bidi --hidden-import=apps.utils --copy-metadata="django-auditlog" desktop_app.py
+```
+
+## Runtime Hook (`rthook_importlib_metadata.py`)
 ملف يُحقن قبل أي كود آخر في التطبيق المُجمّد لجعل `importlib.metadata` يجد حزم `dist-info` في `_internal/`:
 ```python
 import sys, pathlib, importlib.metadata as _ilm
@@ -50,10 +66,44 @@ if _internal.is_dir():
 ```python
 import os
 import sys
+import json
 import socket
 import threading
 import time
 import re
+
+# ── Load Supabase/DB config from external JSON file ──────────
+def _load_db_config():
+    config_paths = []
+    if getattr(sys, 'frozen', False):
+        config_paths.append(os.path.join(os.path.dirname(sys.executable), 'supabase_config.json'))
+    else:
+        config_paths.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'supabase_config.json'))
+    for cfg_path in config_paths:
+        if os.path.exists(cfg_path):
+            try:
+                with open(cfg_path, encoding='utf-8') as f:
+                    cfg = json.load(f)
+                db = cfg.get('database', {})
+                if db.get('engine'):
+                    os.environ['SUPABASE_DB_ENGINE']    = db['engine']
+                    os.environ['SUPABASE_DB_HOST']      = db.get('host', '')
+                    os.environ['SUPABASE_DB_PORT']      = str(db.get('port', 5432))
+                    os.environ['SUPABASE_DB_NAME']      = db.get('name', 'postgres')
+                    os.environ['SUPABASE_DB_USER']      = db.get('user', 'postgres')
+                    os.environ['SUPABASE_DB_PASSWORD']  = db.get('password', '')
+                    os.environ['SUPABASE_DB_SSLMODE']   = db.get('sslmode', 'require')
+                    return True
+            except Exception as e:
+                print(f"Warning: Could not load DB config: {e}")
+    return False
+
+_using_supabase = _load_db_config()
+
+# ── Ensure SECRET_KEY is set before Django loads ──────────────
+if 'SECRET_KEY' not in os.environ:
+    import secrets
+    os.environ['SECRET_KEY'] = secrets.token_urlsafe(50)
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'config.settings'
 
@@ -63,13 +113,26 @@ settings = django.conf.settings
 
 os.environ.setdefault('DJANGO_ALLOW_ASYNC_UNSAFE', 'true')
 
-# Override paths when running frozen
+# Force DEBUG off in frozen/production builds
+if getattr(sys, 'frozen', False):
+    settings.DEBUG = False
+
+# Override paths when running frozen (EXE mode)
 if getattr(sys, 'frozen', False):
     INTERNAL_DIR = os.path.join(os.path.dirname(sys.executable), '_internal')
-    settings.DATABASES['default']['NAME'] = os.path.join(INTERNAL_DIR, 'db.sqlite3')
     settings.TEMPLATES[0]['DIRS'] = [os.path.join(INTERNAL_DIR, 'templates')]
     settings.STATICFILES_DIRS = [os.path.join(INTERNAL_DIR, 'static')]
     settings.STATIC_ROOT = os.path.join(INTERNAL_DIR, 'staticfiles')
+    if not _using_supabase:
+        DATA_DIR = os.path.join(os.environ.get('APPDATA', os.path.expanduser('~')), 'AlmajidApp', 'data')
+        os.makedirs(DATA_DIR, exist_ok=True)
+        DB_PATH = os.path.join(DATA_DIR, 'db.sqlite3')
+        bundled_db = os.path.join(INTERNAL_DIR, 'db.sqlite3')
+        if not os.path.exists(DB_PATH) and os.path.exists(bundled_db):
+            import shutil
+            shutil.copy2(bundled_db, DB_PATH)
+        settings.DATABASES['default']['NAME'] = DB_PATH
+        settings.DATABASES['default']['ENGINE'] = 'django.db.backends.sqlite3'
 
 # Backup fix: add _internal to sys.path for importlib.metadata
 if getattr(sys, 'frozen', False):
@@ -77,6 +140,11 @@ if getattr(sys, 'frozen', False):
     sys.path.insert(0, _internal_path)
 
 django.setup()
+
+# ── Run migrations automatically in frozen mode ──────────────
+if getattr(sys, 'frozen', False):
+    from django.core.management import call_command
+    call_command('migrate', verbosity=0, interactive=False, run_syncdb=True)
 
 # Force PyInstaller to pick up string-referenced modules
 import whitenoise.middleware
@@ -89,6 +157,11 @@ import apps.accounts.context_processors
 import rest_framework_simplejwt.authentication
 import django_filters.rest_framework
 import rest_framework.schemas
+import fpdf
+import apps.utils.pdf_helpers
+
+import psycopg2
+import psycopg2.extensions
 
 from django.core.wsgi import get_wsgi_application
 django_app = get_wsgi_application()
@@ -134,9 +207,9 @@ class DownloadMiddleware:
                 with open(filepath, 'wb') as f:
                     f.write(body)
                 os.startfile(filepath)
-                message = '\u062a\u0645 \u062d\u0641\u0638 \u0627\u0644\u0645\u0644\u0641 \u0641\u064a \u0645\u062c\u0644\u062f \u0627\u0644\u062a\u0646\u0632\u064a\u0644\u0627\u062a: ' + filename
+                message = 'تم حفظ الملف في مجلد التحميلات: ' + filename
             except Exception as e:
-                message = '\u062e\u0637\u0623 \u0641\u064a \u062d\u0641\u0638 \u0627\u0644\u0645\u0644\u0641: ' + str(e)
+                message = 'خطأ في حفظ الملف: ' + str(e)
 
             html = (
                 '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8">'
@@ -181,13 +254,19 @@ def start_server():
 t = threading.Thread(target=start_server, daemon=True)
 t.start()
 
-for i in range(20):
+for i in range(40):
     try:
         s = socket.create_connection((HOST, PORT), timeout=0.5)
         s.close()
         break
     except:
+        if i == 0:
+            print(f"Waiting for server on {HOST}:{PORT}...")
         time.sleep(0.5)
+else:
+    import ctypes
+    ctypes.windll.user32.MessageBoxW(0, 'تعذر تشغيل الخادم بعد 20 ثانية', 'خطأ', 0)
+    os._exit(1)
 
 import webview
 window = webview.create_window(
@@ -203,32 +282,37 @@ os._exit(0)
 ```
 
 ## Fixed Issues
-1. ~~PDF Export - `FPDFUnicodeEncodingException`~~ **(تم الإصلاح)** تم تعديل `apps/occasions/views.py` لاستخدام خط عربي ديناميكي من Windows (`arabtype.ttf` أو `trado.ttf`) مع `set_text_shaping`
-2. ~~Startup crash - `importlib.metadata.PackageNotFoundError: django-auditlog`~~ **(تم الإصلاح)** تم إنشاء `rthook_importlib_metadata.py` (runtime hook يُحقن قبل أي كود) يضبط `importlib.metadata.version()` ليبحث يدوياً في `_internal/*.dist-info` عند فشل البحث العادي في التطبيق المُجمّد
-3. **Excel Export** - يعمل بشكل صحيح عبر DownloadMiddleware
-4. **Database** - `db.sqlite3` مضمنة في `_internal/` ويجب تحديثها قبل البناء إذا تغيرت بيانات المستخدمين
+1. ~~PDF Export - `FPDFUnicodeEncodingException`~~ **(تم الإصلاح)** تم تعديل الكود لاستخدام `apps/utils/pdf_helpers.py` مع خط Amiri المضمّن أو خط Windows كاحتياطي
+2. ~~Startup crash - `importlib.metadata.PackageNotFoundError: django-auditlog`~~ **(تم الإصلاح)** تم إنشاء `rthook_importlib_metadata.py`
+3. ~~Database bundled in EXE~~ **(تم الإصلاح)** تم نقل قاعدة البيانات إلى `%APPDATA%/AlmajidApp/data/` مع نسخ تلقائي من الملف المضمّن عند أول تشغيل
+4. ~~SECRET_KEY ضعيف ومكشوف~~ **(تم الإصلاح)** تم توليد مفتاح عشوائي عند عدم وجوده، وإضافة `.env` مع إعدادات الإنتاج
+5. ~~DEBUG=True في الإنتاج~~ **(تم الإصلاح)** إجبار `DEBUG=False` عند التشغيل من EXE
+6. ~~Arabic unicode escapes~~ **(تم الإصلاح)** استبدال `\uXXXX` بنص عربي مباشر
+7. ~~اختبارات صفرية~~ **(تم الإصلاح)** 20 اختباراً في 3 تطبيقات (accounts, beneficiaries, occasions)
+8. **Excel Export** - يعمل بشكل صحيح عبر DownloadMiddleware
 
-## How to Rebuild EXE
-1. فتح PowerShell في `D:\projects\ekhlas`
-2. تشغيل أمر PyInstaller أعلاه
-3. الانتظار ~4 دقائق
-4. التشغيل من `D:\projects\ekhlas\dist\AlmajidApp\AlmajidApp.exe`
+## Recent Changes (Session: CTO Review & Quality Improvements — يوليو 2026)
+- **الأمان**: تم إصلاح SECRET_KEY (توليد عشوائي بدلاً من الثابت)، إجبار DEBUG=False في EXE، إنشاء `.env` مع key آمن
+- **قاعدة البيانات**: نقل SQLite من `_internal/` إلى `%APPDATA%/AlmajidApp/data/` لضمان بقاء البيانات عند التحديث
+- **الترحيل التلقائي**: إضافة `call_command('migrate')` في frozen mode لتطبيق تغييرات schema تلقائياً
+- **إعادة هيكلة PDF**: استخراج دوال `ar()` و `get_arabic_font()` المشتركة إلى `apps/utils/pdf_helpers.py`
+- **الخط العربي**: تضمين خط Amiri مفتوح المصدر في `static/fonts/` بدلاً من الاعتماد على خطوط Windows
+- **Unicode escapes**: استبدال `\uXXXX` بنص عربي مباشر في desktop_app.py
+- **سياسة كلمة المرور**: رفع الحد الأدنى من 4 إلى 8 أحرف مع تعقيد (حرف كبير، صغير، رقم، رمز)
+- **الاختبارات**: 20 اختباراً جديداً في 3 تطبيقات (accounts, beneficiaries, occasions) — جميعها ناجحة
+- **Timeout**: زيادة مهلة بدء الخادم من 10 إلى 20 ثانية مع رسالة خطأ للمستخدم
+- **Build script**: إنشاء `build.ps1` مؤتمت يشمل اختبارات + ترحيز + بناء + تحقق
+- **Dependencies**: إنشاء `requirements-pinned.txt` بأرقام إصدارات محددة
+- **PyInstaller spec**: تحديث لتضمين fonts و apps.utils
 
-## How to Run Without Building (Dev)
-```powershell
-cd D:\projects\ekhlas
-python desktop_app.py
-```
-
-## Recent Changes (Session: تغيير الملكية لمؤسسة الماجد)
+### التغييرات السابقة (تغيير الملكية لمؤسسة الماجد)
 - تم تغيير اسم التطبيق من "EkhlasApp" إلى "AlmajidApp"
 - تم تغيير اسم المؤسسة من "جمعية الإخلاص الخيرية" إلى "مؤسسة الماجد"
 - تم تغيير اسم النظام من "نظام الإدارة المتكامل" إلى "الجهاز الاداري"
-- تم استبدال الشعار و icon.ico بالشعار الجديد (من media/logo1.jpg)
+- تم استبدال الشعار و icon.ico بالشعار الجديد
 - تم إصلاح مشكلة تصدير PDF بالعربية في occasions/views.py
 - تم تغيير البريد الإداري من admin@ekhlas.org.sa إلى admin@almajid.sa
 - تم تحديث issuer الـ OTP من "الإخلاص" إلى "الماجد"
-- تم تحديث ملف البروشور create_brochure.py بالاسم الجديد
 
 ---
 
@@ -295,13 +379,13 @@ python desktop_app.py
 
 ### المشاكل المتبقية (لم تحل بعد)
 
-1. **PDF Export** - `FPDFUnicodeEncodingException` في `apps/occasions/views.py`
-   - السبب: fpdf2 يحاول كتابة نصوص عربية بالترميز latin-1
-   - الحل المتوقع: إضافة خط يدعم UTF-8 مثل `DejaVu Sans` (ملف `.ttf`) إلى المشروع واستخدامه مع `add_font()`
-   - لم يتم إصلاحها بعد، المستخدم قد يطلب ذلك لاحقاً
-
-2. **قاعدة البيانات** - `db.sqlite3` يجب تحديثها قبل البناء
-3. **لو أضيفت أي features جديدة**، يجب إعادة بناء الـ EXE
+1. ~~**PDF Export** - `FPDFUnicodeEncodingException`~~ **(تم الإصلاح)** استخدام `apps/utils/pdf_helpers.py` مع خط Amiri المضمّن
+2. ~~**Arabic unicode escapes**~~ **(تم الإصلاح)** استبدال `\uXXXX` بنص عربي مباشر
+3. ~~**SECRET_KEY ضعيف**~~ **(تم الإصلاح)** توليد عشوائي أو قراءة من `.env`
+4. ~~**DEBUG=True في الإنتاج**~~ **(تم الإصلاح)** إجبار `False` في frozen mode
+5. ~~**قاعدة البيانات داخل EXE**~~ **(تم الإصلاح)** نقل إلى `%APPDATA%/AlmajidApp/data/`
+6. ~~**اختبارات صفرية**~~ **(تم الإصلاح)** 20 اختباراً في 3 تطبيقات
+7. **إضافة features جديدة** → يتطلب إعادة بناء الـ EXE (مثال: إضافة اختبارات للتطبيقات الأخرى)
 
 ### ملاحظات فنية من المستخدم
 

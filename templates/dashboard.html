@@ -1,19 +1,19 @@
 {% extends 'base.html' %}
 {% load humanize %}
 
-{% block title %}لوحة التحكم{% endblock %}
+{% block title %}لوحة التحكم - {{ site_name }}{% endblock %}
 
 {% block content %}
+{% with is_empty=total_beneficiaries|add:total_donations|add:active_sponsorships|add:active_projects %}
 
-<!-- ===== HERO ===== -->
-<div class="rounded-4 p-4 mb-4 shadow-sm" style="background:#fff; border:3px solid #556B2F; color:#B8860B;">
+<div class="rounded-4 p-4 mb-4 shadow-sm" style="background:#fff; border:3px solid #556B2F;">
     <div class="row align-items-center">
         <div class="col-md">
-            <h4 class="mb-1" id="welcomeGreeting"><i class="bi bi-sun"></i> مرحباً بك</h4>
+            <h1 class="h4 mb-1" id="welcomeGreeting"><i class="bi bi-sun"></i> مرحباً</h1>
             <p class="mb-1" style="color:#556B2F;">مؤسسة الماجد - الجهاز الاداري</p>
             <p class="mb-0 small" style="color:#B8860B;">
                 <span class="ms-3"><i class="bi bi-people"></i> {{ total_beneficiaries|intcomma }} مستفيد</span>
-                <span class="ms-3"><i class="bi bi-gift"></i> {{ total_donations|floatformat:0|intcomma }} جنيه تبرعات</span>
+                <span class="ms-3"><i class="bi bi-gift"></i> {{ total_donations|floatformat:0|intcomma }} ريال تبرعات</span>
                 <span><i class="bi bi-heart-fill"></i> {{ active_sponsorships }} كفالة</span>
             </p>
         </div>
@@ -23,9 +23,19 @@
     </div>
 </div>
 
-<!-- ===== METRICS ===== -->
+{% if is_empty == 0 %}
+<div class="alert alert-info text-center py-5 mb-4" role="alert">
+    <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+    <h4 class="alert-heading">مرحباً بك في النظام</h4>
+    <p class="mb-0">لا توجد بيانات بعد. ابدأ بإضافة مستفيد جديد أو تسجيل أول تبرع.</p>
+    <div class="mt-3">
+        <a href="{% url 'beneficiary_add' %}" class="btn btn-primary me-2"><i class="bi bi-person-plus"></i> إضافة مستفيد</a>
+        <a href="{% url 'donation_add' %}" class="btn btn-success"><i class="bi bi-gift"></i> تسجيل تبرع</a>
+    </div>
+</div>
+{% endif %}
+
 <div class="row g-3 mb-4">
-    {% with row1=1 %}
     <div class="col-md-3 col-6">
         <div class="card border border-primary border-opacity-25 shadow-sm h-100">
             <div class="card-body text-center">
@@ -71,7 +81,6 @@
             </div>
         </div>
     </div>
-
     <div class="col-md-3 col-6">
         <div class="card border border-danger border-opacity-25 shadow-sm h-100">
             <div class="card-body text-center">
@@ -101,23 +110,24 @@
             </div>
         </a>
     </div>
-    {% endwith %}
 </div>
 
-<!-- ===== CHARTS ROW 1 ===== -->
+{% if months_data or cases_by_type or donations_by_type %}
 <div class="row g-3 mb-4">
+    {% if months_data %}
     <div class="col-lg-8">
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
                 <h6 class="mb-0 fw-bold"><i class="bi bi-bar-chart-fill ms-1"></i>التبرعات الشهرية</h6>
-                <span class="badge bg-primary rounded-pill">{{ month_donations|floatformat:0|intcomma }} جنيه هذا الشهر</span>
+                <span class="badge bg-primary rounded-pill">{{ month_donations|floatformat:0|intcomma }} ريال هذا الشهر</span>
             </div>
             <div class="card-body">
                 <canvas id="donationChart" height="280"></canvas>
             </div>
         </div>
     </div>
-    <div class="col-lg-4">
+    {% endif %}
+    <div class="{% if months_data %}col-lg-4{% else %}col-12{% endif %}">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-header bg-white py-3">
                 <h6 class="mb-0 fw-bold"><i class="bi bi-bell-fill ms-1"></i>تنبيهات سريعة</h6>
@@ -126,8 +136,8 @@
                 <a href="{% url 'case_list' %}" class="list-group-item list-group-item-action d-flex align-items-center py-3">
                     <span class="badge bg-warning rounded-circle me-3" style="width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;font-size:0.9rem;"><i class="bi bi-clock"></i></span>
                     <div class="flex-grow-1">
-                        <div class="fw-semibold small">كل الحالات</div>
-                        <div class="text-muted" style="font-size:0.75rem;">جميع الحالات المسجلة</div>
+                        <div class="fw-semibold small">جميع الحالات</div>
+                        <div class="text-muted" style="font-size:0.75rem;">مجموع الحالات المسجلة</div>
                     </div>
                     <span class="badge bg-warning rounded-pill">{{ pending_cases }}</span>
                 </a>
@@ -153,7 +163,7 @@
                         <div class="fw-semibold small">تبرعات هذا الشهر</div>
                         <div class="text-muted" style="font-size:0.75rem;">إجمالي التبرعات الواردة</div>
                     </div>
-                    <span class="badge bg-success rounded-pill">{{ month_donations|floatformat:0|intcomma }} ج.م</span>
+                    <span class="badge bg-success rounded-pill">{{ month_donations|floatformat:0|intcomma }} ريال</span>
                 </a>
                 <a href="{% url 'inventory_list' %}" class="list-group-item list-group-item-action d-flex align-items-center py-3">
                     <span class="badge bg-danger rounded-circle me-3" style="width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;font-size:0.9rem;"><i class="bi bi-box-seam"></i></span>
@@ -168,8 +178,9 @@
     </div>
 </div>
 
-<!-- ===== CHARTS ROW 2 ===== -->
+{% if cases_by_type or donations_by_type %}
 <div class="row g-3 mb-4">
+    {% if cases_by_type %}
     <div class="col-md-6">
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white py-3">
@@ -180,6 +191,8 @@
             </div>
         </div>
     </div>
+    {% endif %}
+    {% if donations_by_type %}
     <div class="col-md-6">
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white py-3">
@@ -190,9 +203,11 @@
             </div>
         </div>
     </div>
+    {% endif %}
 </div>
+{% endif %}
+{% endif %}
 
-<!-- ===== RECENT ACTIVITY ===== -->
 <div class="row g-3">
     <div class="col-md-6">
         <div class="card border-0 shadow-sm">
@@ -216,11 +231,11 @@
                             <tr>
                                 <td class="py-3"><span class="fw-semibold">{{ d.code }}</span></td>
                                 <td class="py-3">{{ d.donor.full_name|default:d.donor_name|default:"متبرع" }}</td>
-                                <td class="py-3 fw-semibold text-success">{{ d.amount|floatformat:2|intcomma }} ج.م</td>
+                                <td class="py-3 fw-semibold text-success">{{ d.amount|floatformat:2|intcomma }} ريال</td>
                                 <td class="py-3 text-muted small">{{ d.created_at|date:"Y/m/d" }}</td>
                             </tr>
                             {% empty %}
-                            <tr><td colspan="4" class="text-center text-muted py-4">لا توجد تبرعات</td></tr>
+                            <tr><td colspan="4" class="text-center text-muted py-4">لا توجد تبرعات بعد</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -254,7 +269,7 @@
                                 <td class="py-3"><span class="badge rounded-pill bg-{% if c.priority == 'urgent' %}danger{% elif c.priority == 'high' %}warning text-dark{% else %}secondary{% endif %}">{{ c.get_priority_display }}</span></td>
                             </tr>
                             {% empty %}
-                            <tr><td colspan="4" class="text-center text-muted py-4">لا توجد حالات</td></tr>
+                            <tr><td colspan="4" class="text-center text-muted py-4">لا توجد حالات بعد</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -263,11 +278,11 @@
         </div>
     </div>
 </div>
+{% endwith %}
 {% endblock %}
 
 {% block extra_js %}
 <script>
-// Greeting
 (function() {
     var h = new Date().getHours();
     var g, i;
@@ -276,12 +291,12 @@
     else { g = 'مساء النور'; i = 'bi-moon-stars'; }
     document.getElementById('welcomeGreeting').innerHTML = '<i class="bi ' + i + ' ms-1"></i>' + g;
 })();
-
-// Charts
+</script>
+{% if months_data %}
+<script>
 Chart.defaults.font.family = "'Segoe UI', 'Traditional Arabic', Tahoma, sans-serif";
 Chart.defaults.font.size = 12;
 Chart.defaults.color = '#6c757d';
-
 new Chart(document.getElementById('donationChart'), {
     type: 'line',
     data: {
@@ -291,12 +306,9 @@ new Chart(document.getElementById('donationChart'), {
             data: [{% for m in months_data %}{{ m.total|stringformat:'.2f' }},{% endfor %}],
             borderColor: 'rgba(13, 110, 253, 1)',
             backgroundColor: 'rgba(13, 110, 253, 0.1)',
-            borderWidth: 3,
-            fill: true,
-            tension: 0.4,
+            borderWidth: 3, fill: true, tension: 0.4,
             pointBackgroundColor: 'rgba(13, 110, 253, 1)',
-            pointRadius: 4,
-            pointHoverRadius: 7,
+            pointRadius: 4, pointHoverRadius: 7,
         }]
     },
     options: {
@@ -304,7 +316,7 @@ new Chart(document.getElementById('donationChart'), {
         animation: { duration: 1200, easing: 'easeOutQuart' },
         plugins: {
             legend: { display: false },
-            tooltip: { callbacks: { label: function(ctx) { return ctx.parsed.y.toLocaleString() + ' جنيه'; } } }
+            tooltip: { callbacks: { label: function(ctx) { return ctx.parsed.y.toLocaleString() + ' ريال'; } } }
         },
         scales: {
             y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { callback: function(v) { return v.toLocaleString(); } } },
@@ -312,7 +324,10 @@ new Chart(document.getElementById('donationChart'), {
         }
     }
 });
-
+</script>
+{% endif %}
+{% if cases_by_type %}
+<script>
 new Chart(document.getElementById('casesChart'), {
     type: 'doughnut',
     data: {
@@ -331,7 +346,10 @@ new Chart(document.getElementById('casesChart'), {
         }
     }
 });
-
+</script>
+{% endif %}
+{% if donations_by_type %}
+<script>
 new Chart(document.getElementById('donationTypeChart'), {
     type: 'doughnut',
     data: {
@@ -347,9 +365,10 @@ new Chart(document.getElementById('donationTypeChart'), {
         animation: { duration: 1400, easing: 'easeOutQuart' },
         plugins: {
             legend: { position: 'bottom', labels: { padding: 12, usePointStyle: true, pointStyle: 'circle' } },
-            tooltip: { callbacks: { label: function(ctx) { return ctx.label + ': ' + ctx.parsed.toLocaleString() + ' جنيه'; } } }
+            tooltip: { callbacks: { label: function(ctx) { return ctx.label + ': ' + ctx.parsed.toLocaleString() + ' ريال'; } } }
         }
     }
 });
 </script>
+{% endif %}
 {% endblock %}

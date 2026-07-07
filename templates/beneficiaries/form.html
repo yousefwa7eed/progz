@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load form_helpers %}
 
 {% block title %}{% if form.instance.pk %}تعديل مستفيد{% else %}إضافة مستفيد{% endif %}{% endblock %}
 
@@ -12,7 +13,7 @@
             <div class="card-body">
                 {% if form.errors %}
                 <div class="alert alert-danger">
-                    <ul class="mb-0">{% for field, errors in form.errors.items %}{% for error in errors %}<li>{{ field }}: {{ error }}</li>{% endfor %}{% endfor %}</ul>
+                    <ul class="mb-0">{% for field, errors in form.errors.items %}{% for error in errors %}<li>{{ form|get_field_label:field }}: {{ error }}</li>{% endfor %}{% endfor %}</ul>
                 </div>
                 {% endif %}
                 <form method="post">

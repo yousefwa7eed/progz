@@ -49,7 +49,7 @@
         </form>
 
         <div class="table-responsive">
-            <table class="table table-hover datatable">
+            <table class="table table-hover datatable" data-paginate="server">
                 <thead>
                     <tr>
                         <th>الكود</th>
@@ -73,9 +73,9 @@
                         <td>{{ b.priority_score }}</td>
                         <td>{% if b.is_urgent %}<i class="bi bi-exclamation-circle text-danger"></i>{% endif %}</td>
                         <td class="actions-cell">
-                            <a href="{% url 'beneficiary_detail' b.id %}" class="btn btn-sm btn-info"><i class="bi bi-eye"></i></a>
-                            <a href="{% url 'beneficiary_edit' b.id %}" class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
-                            <a href="{% url 'beneficiary_delete' b.id %}" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></a>
+                            <a href="{% url 'beneficiary_detail' b.id %}" class="btn btn-sm btn-info" title="عرض"><i class="bi bi-eye"></i></a>
+                            <a href="{% url 'beneficiary_edit' b.id %}" class="btn btn-sm btn-warning" title="تعديل"><i class="bi bi-pencil"></i></a>
+                            <a href="{% url 'beneficiary_delete' b.id %}" class="btn btn-sm btn-danger" title="حذف"><i class="bi bi-trash"></i></a>
                         </td>
                     </tr>
                     {% endfor %}

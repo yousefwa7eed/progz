@@ -37,8 +37,16 @@ def register_view(request):
 
         if not password:
             errors.append('كلمة المرور مطلوبة')
-        elif len(password) < 4:
-            errors.append('كلمة المرور يجب أن تكون 4 أحرف على الأقل')
+        elif len(password) < 8:
+            errors.append('كلمة المرور يجب أن تكون 8 أحرف على الأقل')
+        elif not any(c.isupper() for c in password):
+            errors.append('كلمة المرور يجب أن تحتوي على حرف كبير واحد على الأقل')
+        elif not any(c.islower() for c in password):
+            errors.append('كلمة المرور يجب أن تحتوي على حرف صغير واحد على الأقل')
+        elif not any(c.isdigit() for c in password):
+            errors.append('كلمة المرور يجب أن تحتوي على رقم واحد على الأقل')
+        elif not any(c in '!@#$%^&*()_+-=[]{}|;:,.<>?' for c in password):
+            errors.append('كلمة المرور يجب أن تحتوي على رمز خاص واحد على الأقل')
         elif password != password_confirm:
             errors.append('تأكيد كلمة المرور غير متطابق')
 

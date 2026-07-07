@@ -36,6 +36,11 @@ def _load_db_config():
 
 _using_supabase = _load_db_config()
 
+# ── Ensure SECRET_KEY is set before Django loads ──────────────
+if 'SECRET_KEY' not in os.environ:
+    import secrets
+    os.environ['SECRET_KEY'] = secrets.token_urlsafe(50)
+
 os.environ['DJANGO_SETTINGS_MODULE'] = 'config.settings'
 
 import django
@@ -43,6 +48,10 @@ import django.conf
 settings = django.conf.settings
 
 os.environ.setdefault('DJANGO_ALLOW_ASYNC_UNSAFE', 'true')
+
+# Force DEBUG off in frozen/production builds
+if getattr(sys, 'frozen', False):
+    settings.DEBUG = False
 
 # Override paths when running frozen (EXE mode)
 if getattr(sys, 'frozen', False):
@@ -52,7 +61,15 @@ if getattr(sys, 'frozen', False):
     settings.STATIC_ROOT = os.path.join(INTERNAL_DIR, 'staticfiles')
     # Only override SQLite path when NOT using Supabase
     if not _using_supabase:
-        settings.DATABASES['default']['NAME'] = os.path.join(INTERNAL_DIR, 'db.sqlite3')
+        DATA_DIR = os.path.join(os.environ.get('APPDATA', os.path.expanduser('~')), 'AlmajidApp', 'data')
+        os.makedirs(DATA_DIR, exist_ok=True)
+        DB_PATH = os.path.join(DATA_DIR, 'db.sqlite3')
+        # Copy bundled database on first run
+        bundled_db = os.path.join(INTERNAL_DIR, 'db.sqlite3')
+        if not os.path.exists(DB_PATH) and os.path.exists(bundled_db):
+            import shutil
+            shutil.copy2(bundled_db, DB_PATH)
+        settings.DATABASES['default']['NAME'] = DB_PATH
         settings.DATABASES['default']['ENGINE'] = 'django.db.backends.sqlite3'
 
 # Backup fix: add _internal to sys.path for importlib.metadata
@@ -61,6 +78,11 @@ if getattr(sys, 'frozen', False):
     sys.path.insert(0, _internal_path)
 
 django.setup()
+
+# ── Run migrations automatically in frozen mode ──────────────
+if getattr(sys, 'frozen', False):
+    from django.core.management import call_command
+    call_command('migrate', verbosity=0, interactive=False, run_syncdb=True)
 
 # Force PyInstaller to pick up string-referenced modules
 import whitenoise.middleware
@@ -74,6 +96,7 @@ import rest_framework_simplejwt.authentication
 import django_filters.rest_framework
 import rest_framework.schemas
 import fpdf
+import apps.utils.pdf_helpers
 
 # Force PyInstaller to bundle psycopg2 for PostgreSQL (Supabase) support
 import psycopg2
@@ -123,9 +146,9 @@ class DownloadMiddleware:
                 with open(filepath, 'wb') as f:
                     f.write(body)
                 os.startfile(filepath)
-                message = '\u062a\u0645 \u062d\u0641\u0638 \u0627\u0644\u0645\u0644\u0641 \u0641\u064a \u0645\u062c\u0644\u062f \u0627\u0644\u062a\u0646\u0632\u064a\u0644\u0627\u062a: ' + filename
+                message = 'تم حفظ الملف في مجلد التحميلات: ' + filename
             except Exception as e:
-                message = '\u062e\u0637\u0623 \u0641\u064a \u062d\u0641\u0638 \u0627\u0644\u0645\u0644\u0641: ' + str(e)
+                message = 'خطأ في حفظ الملف: ' + str(e)
 
             html = (
                 '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8">'
@@ -170,13 +193,19 @@ def start_server():
 t = threading.Thread(target=start_server, daemon=True)
 t.start()
 
-for i in range(20):
+for i in range(40):
     try:
         s = socket.create_connection((HOST, PORT), timeout=0.5)
         s.close()
         break
     except:
+        if i == 0:
+            print(f"Waiting for server on {HOST}:{PORT}...")
         time.sleep(0.5)
+else:
+    import ctypes
+    ctypes.windll.user32.MessageBoxW(0, 'تعذر تشغيل الخادم بعد 20 ثانية', 'خطأ', 0)
+    os._exit(1)
 
 import webview
 window = webview.create_window(
