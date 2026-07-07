@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}الملف الشخصي{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-person"></i> الملف الشخصي</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">اسم المستخدم</label>
+                        <input type="text" class="form-control" value="{{ user.username }}" disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">الاسم الكامل</label>
+                        <input type="text" name="full_name" class="form-control" value="{{ user.full_name }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">البريد الإلكتروني</label>
+                        <input type="email" name="email" class="form-control" value="{{ user.email }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">رقم الموبايل</label>
+                        <input type="text" name="phone" class="form-control" value="{{ user.phone }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">الدور</label>
+                        <input type="text" class="form-control" value="{{ user.role.name|default:'--' }}" disabled>
+                    </div>
+                    <div class="mb-3 form-check form-switch">
+                        <input type="checkbox" name="profile_2fa_enabled" class="form-check-input" id="otpToggle"
+                               {% if user.otp_enabled %}checked{% endif %}>
+                        <label class="form-check-label" for="otpToggle">تفعيل التحقق الثنائي (2FA)</label>
+                    </div>
+                    {% if qr_uri %}
+                    <div class="mb-3 text-center">
+                        <p class="text-muted small">امسح رمز QR باستخدام تطبيق Google Authenticator أو Authy</p>
+                        <img src="{{ qr_uri }}" alt="QR Code" style="max-width: 200px;" class="border rounded p-2">
+                    </div>
+                    {% endif %}
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> حفظ</button>
+                    <a href="{% url 'change_password' %}" class="btn btn-outline-secondary"><i class="bi bi-key"></i> تغيير كلمة المرور</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

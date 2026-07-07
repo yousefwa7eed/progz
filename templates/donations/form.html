@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}تسجيل تبرع{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-plus-lg"></i> تسجيل تبرع جديد</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">المتبرع</label>
+                            <select name="donor" class="form-select select2">
+                                <option value="">اختر متبرعاً (أو اكتب الاسم يدوياً)</option>
+                                {% for dn in form.donor.field.queryset %}
+                                <option value="{{ dn.id }}" {% if form.donor.value|stringformat:"s" == dn.id|stringformat:"s" %}selected{% endif %}>{{ dn.code }} - {{ dn.full_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">اسم المتبرع (للتبرع المجهول)</label>
+                            <input type="text" name="donor_name" class="form-control" value="{{ form.donor_name.value|default:'' }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">نوع التبرع *</label>
+                            <select name="donation_type" class="form-select" required>
+                                <option value="cash" {% if form.donation_type.value == 'cash' %}selected{% endif %}>نقدي</option>
+                                <option value="in_kind" {% if form.donation_type.value == 'in_kind' %}selected{% endif %}>عيني</option>
+                                <option value="electronic" {% if form.donation_type.value == 'electronic' %}selected{% endif %}>إلكتروني</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">طريقة الدفع *</label>
+                            <select name="payment_method" class="form-select" required>
+                                <option value="cash" {% if form.payment_method.value == 'cash' %}selected{% endif %}>نقداً</option>
+                                <option value="transfer" {% if form.payment_method.value == 'transfer' %}selected{% endif %}>تحويل بنكي</option>
+                                <option value="card" {% if form.payment_method.value == 'card' %}selected{% endif %}>بطاقة</option>
+                                <option value="cheque" {% if form.payment_method.value == 'cheque' %}selected{% endif %}>شيك</option>
+                                <option value="wallet" {% if form.payment_method.value == 'wallet' %}selected{% endif %}>محفظة إلكترونية</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">المبلغ *</label>
+                            <input type="number" name="amount" class="form-control" value="{{ form.amount.value|default:0 }}" step="0.01" min="0" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">نوع المعاملة *</label>
+                            <select name="transaction_type" class="form-select" required>
+                                <option value="general">عام</option>
+                                <option value="zakat">زكاة</option>
+                                <option value="sadaqah">صدقة</option>
+                                <option value="sponsorship">كفالة</option>
+                                <option value="project">مشروع</option>
+                                <option value="endowment">وقف</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <div class="form-check mt-4">
+                                <input type="checkbox" name="is_zakat" class="form-check-input" id="is_zakat" {% if form.is_zakat.value %}checked{% endif %}>
+                                <label class="form-check-label" for="is_zakat">زكاة</label>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">سنة الزكاة</label>
+                            <input type="number" name="zakat_year" class="form-control" value="{{ form.zakat_year.value|default:'' }}">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">المشروع</label>
+                            <select name="project" class="form-select">
+                                <option value="">-- اختر --</option>
+                                {% for p in form.project.field.queryset %}
+                                <option value="{{ p.id }}" {% if form.project.value|stringformat:"s" == p.id|stringformat:"s" %}selected{% endif %}>{{ p.code }} - {{ p.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label">ملاحظات</label>
+                            <textarea name="notes" class="form-control" rows="2">{{ form.notes.value|default:'' }}</textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> تسجيل وإصدار إيصال</button>
+                    <a href="{% url 'donation_list' %}" class="btn btn-secondary">إلغاء</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

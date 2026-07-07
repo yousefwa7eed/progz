@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}تقرير المخزون{% endblock %}
+
+{% block content %}
+<h4><i class="bi bi-box"></i> تقرير المخزون</h4>
+<div class="row g-3 mb-3">
+    <div class="col-md-3"><div class="stat-card bg-primary-light"><div class="stat-number">{{ total_items|intcomma }}</div><div class="stat-label">إجمالي الأصناف</div></div></div>
+    <div class="col-md-3"><div class="stat-card bg-success-light"><div class="stat-number">{{ total_quantity|floatformat:0|intcomma }}</div><div class="stat-label">إجمالي الكميات</div></div></div>
+    <div class="col-md-3"><div class="stat-card bg-danger-light"><div class="stat-number">{{ low_stock|intcomma }}</div><div class="stat-label">مخزون منخفض</div></div></div>
+    <div class="col-md-3"><div class="stat-card bg-info-light"><div class="stat-number">{{ by_category|length|intcomma }}</div><div class="stat-label">عدد التصنيفات</div></div></div>
+</div>
+<div class="row g-3">
+    <div class="col-md-6"><div class="card"><div class="card-header bg-white"><h6>حسب التصنيف</h6></div><div class="card-body"><table class="table table-sm">{% for c in by_category %}<tr><td>{{ c.category__name|default:"بدون تصنيف" }}</td><td>{{ c.count }} صنف</td><td>{{ c.total_qty|floatformat:0 }}</td></tr>{% endfor %}</table></div></div></div>
+    <div class="col-md-6"><div class="card"><div class="card-header bg-white"><h6>آخر الحركات</h6></div><div class="card-body p-0"><table class="table table-sm mb-0">{% for t in recent_transactions %}<tr><td>{{ t.item.name|truncatechars:20 }}</td><td><span class="badge bg-{% if t.transaction_type == 'receive' %}success{% else %}danger{% endif %}">{{ t.get_transaction_type_display }}</span></td><td>{{ t.quantity|floatformat:2 }}</td><td>{{ t.created_at|date:"Y/m/d" }}</td></tr>{% empty %}<tr><td colspan="4" class="text-center">لا توجد حركات</td></tr>{% endfor %}</table></div></div></div>
+</div>
+<div class="card mt-3"><div class="card-body">
+    <div class="table-responsive">
+        <table class="table table-hover datatable">
+            <thead><tr><th>الكود</th><th>الاسم</th><th>التصنيف</th><th>الكمية</th><th>الحد الأدنى</th><th>الحالة</th></tr></thead>
+            <tbody>{% for i in items %}<tr class="{% if i.quantity <= i.min_quantity %}table-warning{% endif %}"><td>{{ i.code }}</td><td>{{ i.name }}</td><td>{{ i.category.name|default:"--" }}</td><td>{{ i.quantity|floatformat:2 }}</td><td>{{ i.min_quantity|floatformat:2 }}</td><td>{% if i.quantity <= i.min_quantity %}<span class="badge bg-danger">منخفض</span>{% else %}<span class="badge bg-success">متوفر</span>{% endif %}</td></tr>{% endfor %}</tbody>
+        </table>
+    </div>
+</div></div>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}الحالات{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4><i class="bi bi-folder"></i> الحالات</h4>
+    <div>
+        <a href="{% url 'case_add' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> حالة جديدة</a>
+        <a href="{% url 'case_export_excel' %}" class="btn btn-success"><i class="bi bi-file-earmark-excel"></i> Excel</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-md-3"><div class="input-group"><input type="text" name="search" class="form-control auto-search" placeholder="بحث..." value="{{ search }}"><button type="button" class="btn btn-outline-secondary search-clear d-none" tabindex="-1">&times;</button></div></div>
+            <div class="col-md-2">
+                <select name="status" class="form-select">
+                    <option value="">كل الحالات</option>
+                    <option value="new" {% if status_filter == 'new' %}selected{% endif %}>جديد</option>
+                    <option value="under_study" {% if status_filter == 'under_study' %}selected{% endif %}>قيد الدراسة</option>
+                    <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>معتمد</option>
+                    <option value="disbursed" {% if status_filter == 'disbursed' %}selected{% endif %}>تم الصرف</option>
+                    <option value="closed" {% if status_filter == 'closed' %}selected{% endif %}>مغلق</option>
+                    <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>مرفوض</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="priority" class="form-select">
+                    <option value="">كل الأولويات</option>
+                    <option value="urgent" {% if priority_filter == 'urgent' %}selected{% endif %}>عاجلة</option>
+                    <option value="high" {% if priority_filter == 'high' %}selected{% endif %}>عالية</option>
+                    <option value="medium" {% if priority_filter == 'medium' %}selected{% endif %}>متوسطة</option>
+                    <option value="low" {% if priority_filter == 'low' %}selected{% endif %}>منخفضة</option>
+                </select>
+            </div>
+            <div class="col-md-2"><button type="submit" class="btn btn-outline-primary w-100"><i class="bi bi-search"></i> بحث</button></div>
+        </form>
+        <div class="table-responsive">
+            <table class="table table-hover datatable">
+                <thead><tr><th>الرقم</th><th>المستفيد</th><th>النوع</th><th>الأولوية</th><th>الحالة</th><th>تاريخ الإنشاء</th><th>الإجراءات</th></tr></thead>
+                <tbody>
+                    {% for c in cases %}
+                    <tr>
+                        <td>{{ c.code }}</td>
+                        <td><a href="{% url 'beneficiary_detail' c.beneficiary.id %}">{{ c.beneficiary.full_name }}</a></td>
+                        <td>{{ c.get_case_type_display }}</td>
+                        <td><span class="badge bg-{% if c.priority == 'urgent' %}danger{% elif c.priority == 'high' %}warning{% elif c.priority == 'medium' %}info{% else %}secondary{% endif %}">{{ c.get_priority_display }}</span></td>
+                        <td><span class="badge bg-{% if c.status == 'new' %}primary{% elif c.status == 'under_study' %}warning{% elif c.status == 'approved' %}success{% elif c.status == 'disbursed' %}info{% elif c.status == 'rejected' %}danger{% else %}secondary{% endif %}">{{ c.get_status_display }}</span></td>
+                        <td>{{ c.created_at|date:"Y/m/d" }}</td>
+                        <td><a href="{% url 'case_detail' c.id %}" class="btn btn-sm btn-info"><i class="bi bi-eye"></i></a>
+                            <a href="{% url 'case_delete' c.id %}" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

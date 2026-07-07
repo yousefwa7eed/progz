@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}تفاصيل القيد{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-white"><h5>قيد {{ entry.code }}</h5></div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr><th>النوع</th><td><span class="badge bg-{% if entry.entry_type == 'income' %}success{% else %}danger{% endif %}">{{ entry.get_entry_type_display }}</span></td></tr>
+                    <tr><th>المبلغ</th><td>{{ entry.amount|floatformat:2|intcomma }} جنيه</td></tr>
+                    <tr><th>التاريخ</th><td>{{ entry.entry_date|date:"Y/m/d" }}</td></tr>
+                    <tr><th>البيان</th><td>{{ entry.description }}</td></tr>
+                    <tr><th>الحساب</th><td>{{ entry.account.name|default:"--" }}</td></tr>
+                    <tr><th>طريقة الدفع</th><td>{{ entry.get_payment_method_display }}</td></tr>
+                    <tr><th>نوع المعاملة</th><td>{{ entry.get_transaction_type_display }}</td></tr>
+                    <tr><th>معتمد</th><td>{% if entry.is_approved %}<i class="bi bi-check-circle text-success"></i> نعم{% else %}<i class="bi bi-x-circle text-danger"></i> لا{% endif %}</td></tr>
+                    <tr><th>مسجل بواسطة</th><td>{{ entry.recorded_by.full_name|default:"--" }}</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

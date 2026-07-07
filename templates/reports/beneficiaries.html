@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}تقرير المستفيدين{% endblock %}
+
+{% block content %}
+<h4><i class="bi bi-people"></i> تقرير المستفيدين</h4>
+<div class="row g-3 mb-3">
+    <div class="col-md-3"><div class="stat-card bg-primary-light"><div class="stat-number">{{ total|intcomma }}</div><div class="stat-label">الإجمالي</div></div></div>
+    <div class="col-md-3"><div class="stat-card bg-success-light"><div class="stat-number">{{ active|intcomma }}</div><div class="stat-label">نشط</div></div></div>
+    <div class="col-md-3"><div class="stat-card bg-warning-light"><div class="stat-number">{{ orphans|intcomma }}</div><div class="stat-label">أيتام</div></div></div>
+    <div class="col-md-3"><div class="stat-card bg-info-light"><div class="stat-number">{{ urgent|intcomma }}</div><div class="stat-label">حالات عاجلة</div></div></div>
+</div>
+<div class="card"><div class="card-body">
+    <form method="get" class="row g-2 mb-3">
+        <div class="col-md-2"><input type="date" name="from" class="form-control" value="{{ from_date }}"></div>
+        <div class="col-md-2"><input type="date" name="to" class="form-control" value="{{ to_date }}"></div>
+        <div class="col-md-2"><button type="submit" class="btn btn-outline-primary w-100"><i class="bi bi-search"></i> تطبيق</button></div>
+    </form>
+    <div class="table-responsive">
+        <table class="table table-hover datatable">
+            <thead><tr><th>الاسم</th><th>نوع المساعدة</th><th>الجنسية</th><th>الحالة</th><th>درجة الأولوية</th><th>تاريخ التسجيل</th></tr></thead>
+            <tbody>
+                {% for b in beneficiaries %}
+                <tr>
+                    <td><a href="{% url 'beneficiary_detail' b.id %}">{{ b.full_name }}</a></td>
+                    <td>{{ b.get_assistance_type_display }}</td>
+                    <td>{{ b.nationality }}</td>
+                    <td>{% if b.is_active %}<span class="badge bg-success">نشط</span>{% else %}<span class="badge bg-secondary">غير نشط</span>{% endif %}</td>
+                    <td>{{ b.priority_score }}</td>
+                    <td>{{ b.created_at|date:"Y/m/d" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div></div>
+{% endblock %}

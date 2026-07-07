@@ -1,0 +1,60 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>إيصال استلام تبرع</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css">
+    <style>
+        body { padding: 40px; font-family: 'Traditional Arabic', serif; }
+        .receipt-title { text-align: center; font-size: 1.5rem; font-weight: bold; margin-bottom: 30px; }
+        .receipt-table { width: 100%; }
+        .receipt-table td { padding: 8px; }
+        .receipt-footer { margin-top: 50px; text-align: center; }
+        .stamp { width: 100px; height: 100px; border: 2px solid #333; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem; text-align: center; }
+        @media print {
+            .btn { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col text-center">
+                <h2>مؤسسة الماجد</h2>
+                <h5>إيصال استلام تبرع</h5>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-6">رقم الإيصال: <strong>{{ donation.receipt_number }}</strong></div>
+            <div class="col-6 text-start">التاريخ: <strong>{{ donation.receipt_date|date:"Y/m/d" }}</strong></div>
+        </div>
+
+        <table class="table table-bordered">
+            <tr><td style="width: 30%;">المتبرع</td><td>{{ donation.donor.full_name|default:donation.donor_name|default:"متبرع" }}</td></tr>
+            <tr><td>المبلغ</td><td><strong>{{ donation.amount|floatformat:2|intcomma }} جنيه</strong></td></tr>
+            <tr><td>نوع التبرع</td><td>{{ donation.get_donation_type_display }}</td></tr>
+            <tr><td>طريقة الدفع</td><td>{{ donation.get_payment_method_display }}</td></tr>
+            <tr><td>نوع المعاملة</td><td>{{ donation.get_transaction_type_display }}</td></tr>
+            {% if donation.notes %}<tr><td>ملاحظات</td><td>{{ donation.notes }}</td></tr>{% endif %}
+        </table>
+
+        <div class="row mt-5">
+            <div class="col-6 text-center">
+                <div class="stamp mx-auto">ختم المؤسسة</div>
+            </div>
+            <div class="col-6 text-center">
+                <p>المستلم: ________________</p>
+                <p>{{ donation.received_by.full_name|default:"" }}</p>
+            </div>
+        </div>
+
+        <div class="row mt-4 no-print">
+            <div class="col text-center">
+                <button class="btn btn-primary" onclick="window.print()">طباعة</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

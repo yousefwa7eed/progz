@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}{{ employee.full_name }}{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card"><div class="card-header bg-white"><h6>معلومات الموظف</h6></div>
+        <div class="card-body">
+            <table class="table table-sm">
+                <tr><th>الكود</th><td>{{ employee.employee_code }}</td></tr>
+                <tr><th>الاسم</th><td>{{ employee.full_name }}</td></tr>
+                <tr><th>النوع</th><td><span class="badge bg-info">{{ employee.get_employee_type_display }}</span></td></tr>
+                <tr><th>المسمى الوظيفي</th><td>{{ employee.position|default:"--" }}</td></tr>
+                <tr><th>القسم</th><td>{{ employee.department|default:"--" }}</td></tr>
+                <tr><th>الفرع</th><td>{{ employee.branch.name|default:"--" }}</td></tr>
+                <tr><th>رقم الموبايل</th><td>{{ employee.phone }}</td></tr>
+                <tr><th>البريد</th><td>{{ employee.email|default:"--" }}</td></tr>
+                <tr><th>تاريخ التعيين</th><td>{{ employee.hire_date|date:"Y/m/d"|default:"--" }}</td></tr>
+                <tr><th>نوع العقد</th><td>{{ employee.get_contract_type_display }}</td></tr>
+                <tr><th>الراتب</th><td>{{ employee.salary|floatformat:2|intcomma }}</td></tr>
+                <tr><th>الحالة</th><td>{% if employee.is_active %}<span class="badge bg-success">نشط</span>{% else %}<span class="badge bg-danger">غير نشط</span>{% endif %}</td></tr>
+            </table>
+        </div></div>
+    </div>
+    <div class="col-md-6">
+        <div class="card"><div class="card-header bg-white"><h6>معلومات إضافية</h6></div>
+        <div class="card-body">
+            <h6>المؤهلات</h6>
+            <p>{{ employee.qualifications|default:"لا توجد" }}</p>
+            <h6>المهارات</h6>
+            <p>{{ employee.skills|default:"لا توجد" }}</p>
+            <h6>ملاحظات</h6>
+            <p>{{ employee.notes|default:"لا توجد" }}</p>
+        </div></div>
+    </div>
+</div>
+{% endblock %}

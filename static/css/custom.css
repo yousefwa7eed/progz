@@ -1,0 +1,254 @@
+body {
+    font-family: 'Segoe UI', 'Traditional Arabic', Tahoma, sans-serif;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.3rem;
+}
+
+.navbar .nav-link {
+    font-size: 0.95rem;
+}
+
+
+.card {
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    transition: box-shadow 0.2s;
+}
+
+.card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+}
+
+.card-header {
+    border-radius: 10px 10px 0 0 !important;
+    font-weight: bold;
+}
+
+.stat-card {
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+}
+
+.stat-card .stat-icon {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.stat-card .stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.stat-card .stat-label {
+    font-size: 0.95rem;
+    color: #6c757d;
+}
+
+.bg-primary-light {
+    background-color: #e8f0fe;
+}
+
+.bg-success-light {
+    background-color: #e6f4ea;
+}
+
+.bg-warning-light {
+    background-color: #fef7e0;
+}
+
+.bg-info-light {
+    background-color: #e4f4fb;
+}
+
+.bg-danger-light {
+    background-color: #fce8e6;
+}
+
+.table th {
+    font-weight: 600;
+    background-color: #f8f9fa;
+}
+
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.btn-sm {
+    border-radius: 6px;
+}
+
+.form-control, .form-select {
+    border-radius: 8px;
+    border-color: #dee2e6;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+}
+
+.breadcrumb {
+    background-color: transparent;
+    padding: 0;
+}
+
+.pagination {
+    justify-content: center;
+}
+
+.footer {
+    margin-top: auto !important;
+}
+
+.login-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+}
+
+.login-card {
+    width: 400px;
+    max-width: 90%;
+    border-radius: 15px;
+}
+
+.login-card .card-header {
+    border-radius: 15px 15px 0 0;
+    text-align: center;
+    padding: 30px 20px 20px;
+}
+
+.login-card .card-body {
+    padding: 30px;
+}
+
+.dashboard-card {
+    text-decoration: none;
+    color: inherit;
+}
+
+.dashboard-card:hover {
+    color: inherit;
+}
+
+.badge {
+    font-weight: 500;
+    padding: 0.4em 0.7em;
+}
+
+.search-box {
+    max-width: 300px;
+}
+
+.actions-cell {
+    white-space: nowrap;
+    width: 1%;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    margin-bottom: 20px;
+}
+
+.print-only {
+    display: none;
+}
+
+@media print {
+    .no-print { display: none; }
+    .print-only { display: block; }
+    .card { box-shadow: none; border: 1px solid #dee2e6; }
+}
+
+.dataTables_wrapper .dataTables_filter input {
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    padding: 0.375rem 0.75rem;
+}
+
+.select2-container--bootstrap-5 .select2-selection {
+    border-radius: 8px;
+    min-height: 38px;
+}
+
+.progress-thin {
+    height: 6px;
+    border-radius: 3px;
+}
+
+.list-group-item {
+    border-radius: 8px !important;
+    margin-bottom: 4px;
+}
+
+.nav-btn {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 2px 8px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    color: rgba(255,255,255,0.9);
+    line-height: 1;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.15s;
+}
+.nav-btn:hover {
+    background: rgba(255,255,255,0.25);
+    border-color: rgba(255,255,255,0.4);
+    color: #fff;
+}
+
+/* Search clear button */
+.search-clear {
+    cursor: pointer;
+    z-index: 5;
+}
+
+/* Navbar dropdown arrow animation */
+.dropdown-arrow {
+    display: inline-block;
+    transition: transform 0.3s ease;
+    font-size: 0.7rem;
+    margin-right: 4px;
+}
+.navbar .dropdown-arrow.rotated {
+    transform: rotate(180deg);
+}
+.dropdown-arrow.rotated {
+    transform: rotate(180deg);
+}
+
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+}

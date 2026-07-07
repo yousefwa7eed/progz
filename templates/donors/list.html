@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}المتبرعين{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4><i class="bi bi-gift"></i> المتبرعين</h4>
+    <div>
+        <a href="{% url 'donor_add' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> إضافة متبرع</a>
+        <a href="{% url 'donor_export_excel' %}" class="btn btn-success"><i class="bi bi-file-earmark-excel"></i> Excel</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <input type="text" name="search" class="form-control auto-search" placeholder="بحث..." value="{{ search }}">
+                    <button type="button" class="btn btn-outline-secondary search-clear d-none" tabindex="-1">&times;</button>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <select name="donor_type" class="form-select">
+                    <option value="">الكل</option>
+                    <option value="individual" {% if type_filter == 'individual' %}selected{% endif %}>فرد</option>
+                    <option value="company" {% if type_filter == 'company' %}selected{% endif %}>شركة</option>
+                    <option value="organization" {% if type_filter == 'organization' %}selected{% endif %}>مؤسسة</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <div class="form-check mt-2">
+                    <input type="checkbox" name="committed" value="1" class="form-check-input" id="committed" {% if committed_filter %}checked{% endif %}>
+                    <label class="form-check-label" for="committed">منتظمون</label>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary w-100"><i class="bi bi-search"></i> بحث</button>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-hover datatable">
+                <thead>
+                    <tr>
+                        <th>الكود</th>
+                        <th>الاسم</th>
+                        <th>النوع</th>
+                        <th>رقم الموبايل</th>
+                        <th>إجمالي التبرعات</th>
+                        <th>منتظم</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in donors %}
+                    <tr>
+                        <td>{{ d.code }}</td>
+                        <td><a href="{% url 'donor_detail' d.id %}">{{ d.full_name }}</a></td>
+                        <td>{{ d.get_donor_type_display }}</td>
+                        <td>{{ d.phone }}</td>
+                        <td>{{ d.total_donations|floatformat:2|intcomma }} جنيه</td>
+                        <td>{% if d.is_committed %}<i class="bi bi-check-circle text-success"></i>{% endif %}</td>
+                        <td class="actions-cell">
+                            <a href="{% url 'donor_detail' d.id %}" class="btn btn-sm btn-info"><i class="bi bi-eye"></i></a>
+                            <a href="{% url 'donor_edit' d.id %}" class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
+                            <a href="{% url 'donor_delete' d.id %}" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

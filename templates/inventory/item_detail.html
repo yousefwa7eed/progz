@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}{{ item.name }}{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card"><div class="card-header bg-white"><h6>معلومات الصنف</h6></div>
+        <div class="card-body">
+            <table class="table table-sm">
+                <tr><th>الكود</th><td>{{ item.code }}</td></tr>
+                <tr><th>الاسم</th><td>{{ item.name }}</td></tr>
+                <tr><th>التصنيف</th><td>{{ item.category.name|default:"--" }}</td></tr>
+                <tr><th>الكمية</th><td>{{ item.quantity|floatformat:2|intcomma }}</td></tr>
+                <tr><th>الحد الأدنى</th><td>{{ item.min_quantity|floatformat:2|intcomma }}</td></tr>
+                <tr><th>الحد الأقصى</th><td>{{ item.max_quantity|floatformat:2|intcomma|default:"--" }}</td></tr>
+                <tr><th>الحالة</th><td>{% if item.quantity <= item.min_quantity %}<span class="badge bg-danger">مخزون منخفض</span>{% else %}<span class="badge bg-success">متوفر</span>{% endif %}</td></tr>
+                <tr><th>الموقع</th><td>{{ item.location|default:"--" }}</td></tr>
+                <tr><th>سعر الوحدة</th><td>{{ item.unit_price|floatformat:2|intcomma }}</td></tr>
+                <tr><th>وحدة القياس</th><td>{{ item.unit }}</td></tr>
+                <tr><th>تاريخ الصلاحية</th><td>{{ item.expiry_date|date:"Y/m/d"|default:"--" }}</td></tr>
+            </table>
+        </div></div>
+    </div>
+    <div class="col-md-6">
+        <div class="card"><div class="card-header bg-white d-flex justify-content-between"><h6 class="mb-0">آخر الحركات</h6><a href="{% url 'transaction_add' %}?item={{ item.id }}" class="btn btn-sm btn-success"><i class="bi bi-plus-lg"></i> حركة جديدة</a></div>
+        <div class="card-body p-0">
+            <table class="table table-sm mb-0">
+                <thead><tr><th>النوع</th><th>الكمية</th><th>التاريخ</th></tr></thead>
+                <tbody>{% for t in transactions %}<tr><td><span class="badge bg-{% if t.transaction_type == 'receive' %}success{% else %}danger{% endif %}">{{ t.get_transaction_type_display }}</span></td><td>{{ t.quantity|floatformat:2 }}</td><td>{{ t.created_at|date:"Y/m/d" }}</td></tr>{% empty %}<tr><td colspan="3" class="text-center">لا توجد حركات</td></tr>{% endfor %}</tbody>
+            </table>
+        </div></div>
+    </div>
+</div>
+{% endblock %}

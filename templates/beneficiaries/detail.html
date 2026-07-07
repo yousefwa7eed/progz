@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}{{ beneficiary.full_name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+    <h4><i class="bi bi-person"></i> {{ beneficiary.full_name }}</h4>
+    <div class="mt-2 mt-md-0">
+        <a href="{% url 'beneficiary_export_detail_excel' beneficiary.id %}" class="btn btn-outline-success btn-sm"><i class="bi bi-file-earmark-excel"></i> Excel</a>
+        <a href="{% url 'beneficiary_export_detail_pdf' beneficiary.id %}" class="btn btn-outline-danger btn-sm"><i class="bi bi-file-earmark-pdf"></i> PDF</a>
+        <a href="{% url 'beneficiary_edit' beneficiary.id %}" class="btn btn-warning btn-sm"><i class="bi bi-pencil"></i> تعديل</a>
+        <a href="{% url 'case_add' %}?beneficiary={{ beneficiary.id }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> حالة جديدة</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-white"><h6 class="mb-0">معلومات أساسية</h6></div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr><th>الكود</th><td>{{ beneficiary.code }}</td></tr>
+                    <tr><th>الجنس</th><td>{% if beneficiary.gender == 'M' %}ذكر{% else %}أنثى{% endif %}</td></tr>
+                    <tr><th>الرقم القومي</th><td>{{ beneficiary.national_id|default:"--" }}</td></tr>
+                    <tr><th>تاريخ الميلاد</th><td>{{ beneficiary.birth_date|date:"Y/m/d"|default:"--" }}</td></tr>
+                    <tr><th>رقم الموبايل</th><td>{{ beneficiary.phone }}</td></tr>
+                    <tr><th>الحالة</th><td><span class="badge bg-{% if beneficiary.status == 'active' %}success{% elif beneficiary.status == 'suspended' %}warning{% else %}secondary{% endif %}">{{ beneficiary.get_status_display }}</span></td></tr>
+                    <tr><th>الأولوية</th><td><span class="badge bg-{% if beneficiary.priority_score >= 70 %}danger{% elif beneficiary.priority_score >= 40 %}warning{% else %}info{% endif %}">{{ beneficiary.priority_score }}</span></td></tr>
+                </table>
+            </div>
+        </div>
+        <div class="card mt-3">
+            <div class="card-header bg-white"><h6 class="mb-0">العنوان والتواصل</h6></div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr><th>المحافظة</th><td>{{ beneficiary.get_city_display|default:"--" }}</td></tr>
+                    <tr><th>المنطقة</th><td>{{ beneficiary.district|default:"--" }}</td></tr>
+                    <tr><th>العنوان</th><td>{{ beneficiary.address|default:"--" }}</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-white"><h6 class="mb-0">الحالة الاجتماعية</h6></div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr><th>الحالة الاجتماعية</th><td>{{ beneficiary.get_marital_status_display|default:"--" }}</td></tr>
+                    <tr><th>عدد أفراد الأسرة</th><td>{{ beneficiary.family_members }}</td></tr>
+                    <tr><th>يوجد أيتام</th><td>{% if beneficiary.has_orphans %}نعم ({{ beneficiary.orphans_count }}){% else %}لا{% endif %}</td></tr>
+                    <tr><th>الوضع الوظيفي</th><td>{{ beneficiary.get_employment_status_display|default:"--" }}</td></tr>
+                    <tr><th>الدخل الشهري</th><td>{{ beneficiary.monthly_income|floatformat:2|intcomma }} جنيه</td></tr>
+                    <tr><th>نوع السكن</th><td>{{ beneficiary.get_housing_type_display|default:"--" }}</td></tr>
+                </table>
+            </div>
+        </div>
+        {% if beneficiary.health_status or beneficiary.has_chronic_disease or beneficiary.has_disabilities %}
+        <div class="card mt-3">
+            <div class="card-header bg-white"><h6 class="mb-0">الحالة الصحية</h6></div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr><th>الملاحظات الصحية</th><td>{{ beneficiary.health_status|default:"لا توجد" }}</td></tr>
+                    {% if beneficiary.has_chronic_disease %}<tr><th>الأمراض المزمنة</th><td>{{ beneficiary.chronic_diseases }}</td></tr>{% endif %}
+                    {% if beneficiary.has_disabilities %}<tr><th>الإعاقات</th><td>{{ beneficiary.disabilities_details }}</td></tr>{% endif %}
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-white"><h6 class="mb-0">الحالات السابقة</h6></div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for c in cases %}
+                    <a href="{% url 'case_detail' c.id %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between">
+                            <span>{{ c.code }} - {{ c.get_case_type_display }}</span>
+                            <span class="badge bg-{% if c.status == 'approved' %}success{% elif c.status == 'new' %}primary{% elif c.status == 'under_study' %}warning{% else %}secondary{% endif %}">{{ c.get_status_display }}</span>
+                        </div>
+                        <small class="text-muted">{{ c.created_at|date:"Y/m/d" }}</small>
+                    </a>
+                    {% empty %}
+                    <div class="list-group-item text-muted text-center">لا توجد حالات</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="card mt-3">
+            <div class="card-header bg-white"><h6 class="mb-0">المستندات</h6></div>
+            <div class="card-body">
+                {% for d in documents %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span><i class="bi bi-file-earmark"></i> {{ d.title }}</span>
+                    <a href="{{ d.file.url }}" class="btn btn-sm btn-outline-primary" target="_blank"><i class="bi bi-eye"></i></a>
+                </div>
+                {% empty %}
+                <p class="text-muted mb-0">لا توجد مستندات</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

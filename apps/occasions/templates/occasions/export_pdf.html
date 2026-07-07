@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <title>{{ occasion.name }}</title>
+    <style>
+        @page { size: A4; margin: 1.5cm; }
+        body { font-family: 'Traditional Arabic', Arial, sans-serif; font-size: 14px; color: #333; }
+        h1 { text-align: center; color: #556B2F; font-size: 22px; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #B8860B; font-size: 16px; margin-bottom: 20px; }
+        .info { text-align: center; font-size: 13px; color: #666; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th { background: #556B2F; color: #fff; padding: 8px; text-align: center; font-size: 13px; }
+        td { padding: 6px 8px; border: 1px solid #ddd; text-align: center; font-size: 12px; }
+        tr:nth-child(even) { background: #f9f9f9; }
+        .completed { color: #28a745; font-weight: bold; }
+        .pending { color: #dc3545; }
+        .footer { text-align: center; font-size: 11px; color: #999; margin-top: 30px; }
+        .watermark { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.04; font-size: 120px; }
+    </style>
+</head>
+<body>
+    <div class="watermark">الماجد</div>
+    <h1>مؤسسة الماجد</h1>
+    <div class="subtitle">{{ occasion.name }}</div>
+    <div class="info">
+        {{ occasion.display_support_type }}
+        {% if occasion.budget_enabled and occasion.budget_amount %} | الميزانية: {{ occasion.budget_amount }} ج.م{% endif %}
+        | التاريخ: {{ today|date:"Y/m/d" }}
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>م</th>
+                <th>الاسم</th>
+                <th>النوع</th>
+                <th>الحالة</th>
+                <th>المهام</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in members %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ m.display_name }}</td>
+                <td>{{ m.get_member_type_display }}</td>
+                <td class="{% if m.completed %}completed{% else %}pending{% endif %}">{% if m.completed %}تم{% else %}قيد الانتظار{% endif %}</td>
+                <td>
+                    {% for t in m.tasks.all %}
+                        {{ t.task_name }}{% if t.status == 'completed' %} ✓{% endif %}{% if not forloop.last %}, {% endif %}
+                    {% empty %}-{% endfor %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" style="text-align:center;color:#999;">لا توجد بيانات</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if occasion.description %}
+    <p style="font-size:12px;color:#666;"><strong>ملاحظات:</strong> {{ occasion.description }}</p>
+    {% endif %}
+    <div class="footer">تقرير مستخرج من مؤسسة الماجد - {{ today|date:"Y-m-d" }}</div>
+</body>
+</html>

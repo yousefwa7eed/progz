@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if form.instance.pk %}تعديل مستفيد{% else %}إضافة مستفيد{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-{% if form.instance.pk %}pencil{% else %}plus{% endif %}-lg"></i> {% if form.instance.pk %}تعديل مستفيد{% else %}إضافة مستفيد{% endif %}</h5>
+            </div>
+            <div class="card-body">
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    <ul class="mb-0">{% for field, errors in form.errors.items %}{% for error in errors %}<li>{{ field }}: {{ error }}</li>{% endfor %}{% endfor %}</ul>
+                </div>
+                {% endif %}
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">الاسم الكامل *</label>
+                            <input type="text" name="full_name" class="form-control" value="{{ form.full_name.value|default:'' }}" required>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">الجنس *</label>
+                            <select name="gender" class="form-select" required>
+                                <option value="M" {% if form.gender.value == 'M' %}selected{% endif %}>ذكر</option>
+                                <option value="F" {% if form.gender.value == 'F' %}selected{% endif %}>أنثى</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">تاريخ الميلاد</label>
+                            <input type="date" name="birth_date" class="form-control" value="{{ form.birth_date.value|date:'Y-m-d'|default:'' }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">رقم الموبايل *</label>
+                            <input type="text" name="phone" class="form-control" value="{{ form.phone.value|default:'' }}" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">الرقم القومي</label>
+                            <input type="text" name="national_id" class="form-control" value="{{ form.national_id.value|default:'' }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">المحافظة</label>
+                            <select name="city" class="form-select">
+                                <option value="">-- اختر المحافظة --</option>
+                                <option value="cairo" {% if form.city.value == 'cairo' %}selected{% endif %}>القاهرة</option>
+                                <option value="alexandria" {% if form.city.value == 'alexandria' %}selected{% endif %}>الإسكندرية</option>
+                                <option value="giza" {% if form.city.value == 'giza' %}selected{% endif %}>الجيزة</option>
+                                <option value="sharqia" {% if form.city.value == 'sharqia' %}selected{% endif %}>الشرقية</option>
+                                <option value="dakahlia" {% if form.city.value == 'dakahlia' %}selected{% endif %}>الدقهلية</option>
+                                <option value="beheira" {% if form.city.value == 'beheira' %}selected{% endif %}>البحيرة</option>
+                                <option value="gharbia" {% if form.city.value == 'gharbia' %}selected{% endif %}>الغربية</option>
+                                <option value="monufia" {% if form.city.value == 'monufia' %}selected{% endif %}>المنوفية</option>
+                                <option value="qalyubia" {% if form.city.value == 'qalyubia' %}selected{% endif %}>القليوبية</option>
+                                <option value="damietta" {% if form.city.value == 'damietta' %}selected{% endif %}>دمياط</option>
+                                <option value="port_said" {% if form.city.value == 'port_said' %}selected{% endif %}>بورسعيد</option>
+                                <option value="suez" {% if form.city.value == 'suez' %}selected{% endif %}>السويس</option>
+                                <option value="ismailia" {% if form.city.value == 'ismailia' %}selected{% endif %}>الإسماعيلية</option>
+                                <option value="kafr_sheikh" {% if form.city.value == 'kafr_sheikh' %}selected{% endif %}>كفر الشيخ</option>
+                                <option value="fayoum" {% if form.city.value == 'fayoum' %}selected{% endif %}>الفيوم</option>
+                                <option value="b_sweif" {% if form.city.value == 'b_sweif' %}selected{% endif %}>بني سويف</option>
+                                <option value="menya" {% if form.city.value == 'menya' %}selected{% endif %}>المنيا</option>
+                                <option value="asyut" {% if form.city.value == 'asyut' %}selected{% endif %}>أسيوط</option>
+                                <option value="sohag" {% if form.city.value == 'sohag' %}selected{% endif %}>سوهاج</option>
+                                <option value="qena" {% if form.city.value == 'qena' %}selected{% endif %}>قنا</option>
+                                <option value="luxor" {% if form.city.value == 'luxor' %}selected{% endif %}>الأقصر</option>
+                                <option value="aswan" {% if form.city.value == 'aswan' %}selected{% endif %}>أسوان</option>
+                                <option value="red_sea" {% if form.city.value == 'red_sea' %}selected{% endif %}>البحر الأحمر</option>
+                                <option value="wadi_gedid" {% if form.city.value == 'wadi_gedid' %}selected{% endif %}>الوادي الجديد</option>
+                                <option value="matrouh" {% if form.city.value == 'matrouh' %}selected{% endif %}>مطروح</option>
+                                <option value="north_sinai" {% if form.city.value == 'north_sinai' %}selected{% endif %}>شمال سيناء</option>
+                                <option value="south_sinai" {% if form.city.value == 'south_sinai' %}selected{% endif %}>جنوب سيناء</option>
+                                <option value="outside" {% if form.city.value == 'outside' %}selected{% endif %}>خارج مصر</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">المنطقة</label>
+                            <input type="text" name="district" class="form-control" value="{{ form.district.value|default:'' }}">
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label">العنوان</label>
+                            <textarea name="address" class="form-control" rows="2">{{ form.address.value|default:'' }}</textarea>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">الحالة الاجتماعية</label>
+                            <select name="marital_status" class="form-select">
+                                <option value="">-- اختر --</option>
+                                <option value="single" {% if form.marital_status.value == 'single' %}selected{% endif %}>أعزب/عزباء</option>
+                                <option value="married" {% if form.marital_status.value == 'married' %}selected{% endif %}>متزوج</option>
+                                <option value="divorced" {% if form.marital_status.value == 'divorced' %}selected{% endif %}>مطلق</option>
+                                <option value="widowed" {% if form.marital_status.value == 'widowed' %}selected{% endif %}>أرمل</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">عدد أفراد الأسرة</label>
+                            <input type="number" name="family_members" class="form-control" value="{{ form.family_members.value|default:'' }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">الوضع الوظيفي</label>
+                            <select name="employment_status" class="form-select">
+                                <option value="">-- اختر --</option>
+                                <option value="employed" {% if form.employment_status.value == 'employed' %}selected{% endif %}>موظف</option>
+                                <option value="unemployed" {% if form.employment_status.value == 'unemployed' %}selected{% endif %}>عاطل</option>
+                                <option value="retired" {% if form.employment_status.value == 'retired' %}selected{% endif %}>متقاعد</option>
+                                <option value="student" {% if form.employment_status.value == 'student' %}selected{% endif %}>طالب</option>
+                                <option value="disabled" {% if form.employment_status.value == 'disabled' %}selected{% endif %}>عاجز عن العمل</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">الدخل الشهري</label>
+                            <input type="number" name="monthly_income" class="form-control" value="{{ form.monthly_income.value|default:'' }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">نوع السكن</label>
+                            <select name="housing_type" class="form-select">
+                                <option value="">-- اختر --</option>
+                                <option value="owned" {% if form.housing_type.value == 'owned' %}selected{% endif %}>ملك</option>
+                                <option value="rented" {% if form.housing_type.value == 'rented' %}selected{% endif %}>إيجار</option>
+                                <option value="relative" {% if form.housing_type.value == 'relative' %}selected{% endif %}>مع أقارب</option>
+                                <option value="other" {% if form.housing_type.value == 'other' %}selected{% endif %}>أخرى</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <div class="form-check mt-4">
+                                <input type="checkbox" name="is_urgent" class="form-check-input" id="is_urgent" {% if form.is_urgent.value %}checked{% endif %}>
+                                <label class="form-check-label" for="is_urgent">حالة عاجلة</label>
+                            </div>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <div class="form-check mt-4">
+                                <input type="checkbox" name="has_orphans" class="form-check-input" id="has_orphans" {% if form.has_orphans.value %}checked{% endif %}>
+                                <label class="form-check-label" for="has_orphans">يوجد أيتام</label>
+                            </div>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <div class="form-check mt-4">
+                                <input type="checkbox" name="has_chronic_disease" class="form-check-input" id="has_chronic_disease" {% if form.has_chronic_disease.value %}checked{% endif %}>
+                                <label class="form-check-label" for="has_chronic_disease">أمراض مزمنة</label>
+                            </div>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <div class="form-check mt-4">
+                                <input type="checkbox" name="has_disabilities" class="form-check-input" id="has_disabilities" {% if form.has_disabilities.value %}checked{% endif %}>
+                                <label class="form-check-label" for="has_disabilities">إعاقات</label>
+                            </div>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label">ملاحظات</label>
+                            <textarea name="notes" class="form-control" rows="3">{{ form.notes.value|default:'' }}</textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> حفظ</button>
+                    <a href="{% url 'beneficiary_list' %}" class="btn btn-secondary">إلغاء</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+{% block title %}{% if form.instance.pk %}تعديل حالة{% else %}حالة جديدة{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white d-flex align-items-center">
+                <i class="bi bi-folder-plus fs-5 me-2"></i>
+                <h5 class="mb-0">{% if form.instance.pk %}تعديل حالة{% else %}إضافة حالة جديدة{% endif %}</h5>
+            </div>
+            <div class="card-body">
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <ul class="mb-0 mt-1">{% for field, errors in form.errors.items %}{% for error in errors %}<li>{{ error }}</li>{% endfor %}{% endfor %}</ul>
+                </div>
+                {% endif %}
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <!-- القسم 1: المعلومات الأساسية -->
+                    <div class="card bg-light mb-3 border-0">
+                        <div class="card-header bg-transparent border-bottom fw-bold">
+                            <i class="bi bi-info-circle"></i> المعلومات الأساسية
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-semibold">المستفيد <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <select name="beneficiary" class="form-select select2" required>
+                                            <option value="">-- اختر مستفيد --</option>
+                                            {% for bn in form.beneficiary.field.queryset %}
+                                            <option value="{{ bn.id }}" {% if form.beneficiary.value|stringformat:"s" == bn.id|stringformat:"s" %}selected{% endif %}>{{ bn.code }} - {{ bn.full_name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#addBeneficiaryModal">
+                                            <i class="bi bi-plus-lg"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label fw-semibold">نوع المساعدة <span class="text-danger">*</span></label>
+                                    <select name="case_type" class="form-select" required>
+                                        {% for value, label in form.case_type.field.choices %}
+                                        <option value="{{ value }}" {% if form.case_type.value == value %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label fw-semibold">الأولوية <span class="text-danger">*</span></label>
+                                    <select name="priority" class="form-select" required>
+                                        {% for value, label in form.priority.field.choices %}
+                                        <option value="{{ value }}" {% if form.priority.value == value %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label fw-semibold">المبلغ المطلوب</label>
+                                    <div class="input-group">
+                                        <input type="number" name="requested_amount" class="form-control" step="0.01" value="{{ form.requested_amount.value|default:'' }}" placeholder="المبلغ">
+                                        <span class="input-group-text">{{ currency }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label fw-semibold">الباحث الاجتماعي</label>
+                                    <select name="assigned_to" class="form-select">
+                                        <option value="">-- اختر --</option>
+                                        {% for user in form.assigned_to.field.queryset %}
+                                        <option value="{{ user.id }}" {% if form.assigned_to.value|stringformat:"s" == user.id|stringformat:"s" %}selected{% endif %}>{{ user.full_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- القسم 2: الوصف والملاحظات -->
+                    <div class="card bg-light mb-3 border-0">
+                        <div class="card-header bg-transparent border-bottom fw-bold">
+                            <i class="bi bi-pencil-square"></i> التفاصيل
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">وصف الحالة <span class="text-danger">*</span></label>
+                                {{ form.description }}
+                                <div class="form-text">صف حالة المستفيد بالتفصيل (الظروف، الاحتياج، نوع المساعدة المطلوبة).</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">ملاحظات</label>
+                                {{ form.notes }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- القسم 3: الخصائص (فيشترو) -->
+                    <div class="card bg-light mb-3 border-0">
+                        <div class="card-header bg-transparent border-bottom fw-bold d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-list-check"></i> الخصائص الإضافية</span>
+                            <button type="button" class="btn btn-sm btn-primary" onclick="addFeatureRow()">
+                                <i class="bi bi-plus-lg"></i> إضافة خاصية
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-muted small mb-2">أضف خصائص إضافية للحالة مثل: جهة الإحالة، نوع السكن، جهة العمل، عدد أفراد الأسرة...</div>
+                            <table class="table table-sm table-borderless mb-0" id="featuresTable">
+                                <thead>
+                                    <tr class="text-muted">
+                                        <th style="width:35%">الخاصية</th>
+                                        <th style="width:55%">القيمة</th>
+                                        <th style="width:10%"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="featuresBody">
+                                    <tr class="feature-row">
+                                        <td><input type="text" name="feat_name_0" class="form-control form-control-sm" placeholder="مثال: جهة الإحالة"></td>
+                                        <td><input type="text" name="feat_value_0" class="form-control form-control-sm" placeholder="مثال: الشؤون الاجتماعية"></td>
+                                        <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove()"><i class="bi bi-x-lg"></i></button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <input type="hidden" name="features_json" id="features_json" value="">
+                        </div>
+                    </div>
+
+                    <!-- القسم 4: الصور -->
+                    <div class="card bg-light mb-3 border-0">
+                        <div class="card-header bg-transparent border-bottom fw-bold">
+                            <i class="bi bi-images"></i> الصور والمرفقات
+                        </div>
+                        <div class="card-body">
+                            <div class="text-muted small mb-2">يمكنك رفع صور متعددة (بطاقة شخصية، صورة عائلية، إيصالات...)</div>
+                            <div id="imageUploadArea">
+                                <div class="row g-2 mb-2 image-row">
+                                    <div class="col-md-6">
+                                        <input type="file" name="images" class="form-control form-control-sm" accept="image/*">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="text" name="img_labels" class="form-control form-control-sm" placeholder="تسمية الصورة">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="button" class="btn btn-sm btn-outline-success" onclick="addImageRow()"><i class="bi bi-plus-lg"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- أزرار الإرسال -->
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary px-4"><i class="bi bi-save"></i> حفظ الحالة</button>
+                        <a href="{% url 'case_list' %}" class="btn btn-outline-secondary px-4"><i class="bi bi-x-lg"></i> إلغاء</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal إضافة مستفيد سريع -->
+<div class="modal fade" id="addBeneficiaryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-person-plus"></i> إضافة مستفيد جديد</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="quickBeneficiaryForm">
+                <div class="modal-body">
+                    <div id="quickBeneficiaryError" class="alert alert-danger d-none"></div>
+                    <div class="mb-3">
+                        <label class="form-label">الاسم الكامل *</label>
+                        <input type="text" id="qb_name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">الجنس *</label>
+                        <select id="qb_gender" class="form-select" required>
+                            <option value="M">ذكر</option>
+                            <option value="F">أنثى</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">رقم الموبايل *</label>
+                        <input type="text" id="qb_phone" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success" id="quickBeneficiaryBtn"><i class="bi bi-save"></i> حفظ</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+var featIndex = 1;
+
+function addFeatureRow() {
+    var html = '<tr class="feature-row">' +
+        '<td><input type="text" name="feat_name_' + featIndex + '" class="form-control form-control-sm" placeholder="اسم الخاصية"></td>' +
+        '<td><input type="text" name="feat_value_' + featIndex + '" class="form-control form-control-sm" placeholder="القيمة"></td>' +
+        '<td><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest(\'tr\').remove()"><i class="bi bi-x-lg"></i></button></td>' +
+        '</tr>';
+    $('#featuresBody').append(html);
+    featIndex++;
+}
+
+function addImageRow() {
+    var html = '<div class="row g-2 mb-2 image-row">' +
+        '<div class="col-md-6"><input type="file" name="images" class="form-control form-control-sm" accept="image/*"></div>' +
+        '<div class="col-md-4"><input type="text" name="img_labels" class="form-control form-control-sm" placeholder="تسمية الصورة"></div>' +
+        '<div class="col-md-2"><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest(\'.image-row\').remove()"><i class="bi bi-x-lg"></i></button></div>' +
+        '</div>';
+    $('#imageUploadArea').append(html);
+}
+
+// عند إرسال النموذج، نجمع الخصائص في JSON
+$('form').on('submit', function() {
+    var features = [];
+    $('.feature-row').each(function() {
+        var name = $(this).find('input:first').val().trim();
+        var value = $(this).find('input:last').val().trim();
+        if (name && value) {
+            features.push({name: name, value: value});
+        }
+    });
+    $('#features_json').val(JSON.stringify(features));
+});
+
+// إضافة مستفيد سريع
+$('#quickBeneficiaryForm').on('submit', function(e) {
+    e.preventDefault();
+    var btn = $('#quickBeneficiaryBtn').prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+    $('#quickBeneficiaryError').addClass('d-none');
+    $.post('/beneficiaries/quick-add/', {
+        full_name: $('#qb_name').val(),
+        gender: $('#qb_gender').val(),
+        phone: $('#qb_phone').val(),
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+    }, function(data) {
+        if (data.id) {
+            var opt = $('<option value="'+data.id+'" selected>'+data.code+' - '+data.name+'</option>');
+            $('select[name="beneficiary"]').append(opt).val(data.id).trigger('change');
+            $('#addBeneficiaryModal').modal('hide');
+            $('#qb_name, #qb_phone').val('');
+        }
+    }).fail(function(xhr) {
+        var err = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'حدث خطأ';
+        $('#quickBeneficiaryError').removeClass('d-none').text(err);
+    }).always(function() {
+        btn.prop('disabled', false).html('<i class="bi bi-save"></i> حفظ');
+    });
+});
+</script>
+{% endblock %}

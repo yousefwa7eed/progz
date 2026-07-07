@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}القيود المالية{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4><i class="bi bi-journal-text"></i> القيود المالية</h4>
+    <a href="{% url 'entry_add' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> قيد جديد</a>
+</div>
+<div class="card"><div class="card-body">
+    <form method="get" class="row g-2 mb-3">
+        <div class="col-md-2">
+            <select name="entry_type" class="form-select">
+                <option value="">الكل</option>
+                <option value="income" {% if entry_type == 'income' %}selected{% endif %}>إيراد</option>
+                <option value="expense" {% if entry_type == 'expense' %}selected{% endif %}>مصروف</option>
+                <option value="transfer" {% if entry_type == 'transfer' %}selected{% endif %}>تحويل</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select name="transaction_type" class="form-select">
+                <option value="">الكل</option>
+                <option value="general" {% if transaction_type == 'general' %}selected{% endif %}>عام</option>
+                <option value="zakat" {% if transaction_type == 'zakat' %}selected{% endif %}>زكاة</option>
+                <option value="sadaqah" {% if transaction_type == 'sadaqah' %}selected{% endif %}>صدقة</option>
+                <option value="project" {% if transaction_type == 'project' %}selected{% endif %}>مشروع</option>
+            </select>
+        </div>
+        <div class="col-md-2"><input type="date" name="date_from" class="form-control" value="{{ date_from }}"></div>
+        <div class="col-md-2"><input type="date" name="date_to" class="form-control" value="{{ date_to }}"></div>
+        <div class="col-md-2"><button type="submit" class="btn btn-outline-primary w-100"><i class="bi bi-search"></i> بحث</button></div>
+    </form>
+    <div class="mb-2"><strong>الإجمالي: {{ total_amount|floatformat:2|intcomma }} جنيه</strong></div>
+    <div class="table-responsive">
+        <table class="table table-hover datatable">
+            <thead><tr><th>الرقم</th><th>النوع</th><th>المبلغ</th><th>البيان</th><th>الحساب</th><th>طريقة الدفع</th><th>معتمد</th><th>التاريخ</th><th>الإجراءات</th></tr></thead>
+            <tbody>
+                {% for e in entries %}
+                <tr>
+                    <td>{{ e.code }}</td>
+                    <td><span class="badge bg-{% if e.entry_type == 'income' %}success{% elif e.entry_type == 'expense' %}danger{% else %}info{% endif %}">{{ e.get_entry_type_display }}</span></td>
+                    <td>{{ e.amount|floatformat:2|intcomma }}</td>
+                    <td>{{ e.description|truncatechars:30 }}</td>
+                    <td>{{ e.account.name|default:"--" }}</td>
+                    <td>{{ e.get_payment_method_display }}</td>
+                    <td>{% if e.is_approved %}<i class="bi bi-check-circle text-success"></i>{% else %}<i class="bi bi-x-circle text-danger"></i>{% endif %}</td>
+                    <td>{{ e.entry_date|date:"Y/m/d" }}</td>
+                    <td><a href="{% url 'entry_detail' e.id %}" class="btn btn-sm btn-info"><i class="bi bi-eye"></i></a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div></div>
+{% endblock %}

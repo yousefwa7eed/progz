@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}إضافة كفالة{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white"><h5 class="mb-0"><i class="bi bi-plus-lg"></i> إضافة كفالة جديدة</h5></div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">الكفيل *</label>
+                            <select name="sponsor" class="form-select select2" required>
+                                {% for dn in form.sponsor.field.queryset %}
+                                <option value="{{ dn.id }}">{{ dn.code }} - {{ dn.full_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">المستفيد *</label>
+                            <select name="beneficiary" class="form-select select2" required>
+                                {% for bn in form.beneficiary.field.queryset %}
+                                <option value="{{ bn.id }}">{{ bn.code }} - {{ bn.full_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">النوع *</label>
+                            <select name="sponsorship_type" class="form-select" required>
+                                <option value="orphan">يتيم</option>
+                                <option value="family">أسرة</option>
+                                <option value="patient">مريض</option>
+                                <option value="student">طالب</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">المبلغ الشهري *</label>
+                            <input type="number" name="monthly_amount" class="form-control" step="0.01" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">طريقة الدفع</label>
+                            <select name="payment_method" class="form-select">
+                                <option value="cash">نقداً</option>
+                                <option value="transfer" selected>تحويل بنكي</option>
+                                <option value="automatic">خصم آلي</option>
+                                <option value="card">بطاقة</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">تاريخ البدء *</label>
+                            <input type="date" name="start_date" class="form-control" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">المدة (شهر)</label>
+                            <input type="number" name="duration_months" class="form-control" value="12">
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <div class="form-check mt-4">
+                                <input type="checkbox" name="is_permanent" class="form-check-input" id="is_permanent">
+                                <label class="form-check-label" for="is_permanent">مستمرة</label>
+                            </div>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label class="form-label">يوم الدفع</label>
+                            <input type="number" name="payment_day" class="form-control" value="1" min="1" max="28">
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label">ملاحظات</label>
+                            <textarea name="notes" class="form-control" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> حفظ</button>
+                    <a href="{% url 'sponsorship_list' %}" class="btn btn-secondary">إلغاء</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

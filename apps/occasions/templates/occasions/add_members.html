@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}إضافة أعضاء - {{ occasion.name }}{% endblock %}
+
+{% block content %}
+<h5 class="fw-bold mb-3"><i class="bi bi-person-plus ms-1"></i>إضافة أعضاء: {{ occasion.name }}</h5>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label fw-semibold">نوع الإضافة</label>
+                <div class="d-flex gap-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="member_type" id="type_case" value="case" checked>
+                        <label class="form-check-label" for="type_case">إضافة من الحالات الموجودة</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="member_type" id="type_beneficiary" value="beneficiary">
+                        <label class="form-check-label" for="type_beneficiary">إضافة مستفيدين مباشرة</label>
+                    </div>
+                </div>
+            </div>
+
+            <div id="cases_section">
+                <label class="form-label fw-semibold">اختر الحالات</label>
+                <div class="mb-2">
+                    <input type="text" id="caseSearch" class="form-control mb-2" placeholder="بحث بالاسم أو الكود..." oninput="filterCases()">
+                </div>
+                <div class="table-responsive" style="max-height:400px;overflow-y:auto;">
+                    <table class="table table-hover table-sm mb-0" id="casesTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width:40px;"><input type="checkbox" id="selectAllCases" onchange="toggleAllCases()"></th>
+                                <th>الاسم</th>
+                                <th>الكود</th>
+                                <th>النوع</th>
+                                <th>الحالة</th>
+                                <th>الهاتف</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in cases %}
+                            <tr class="case-row">
+                                <td><input type="checkbox" name="case_ids" value="{{ c.id }}" class="case-check"></td>
+                                <td>{{ c.beneficiary.full_name }}</td>
+                                <td class="small">{{ c.code }}</td>
+                                <td>{{ c.get_case_type_display }}</td>
+                                <td><span class="badge bg-{% if c.status == 'new' %}primary{% elif c.status == 'under_study' %}warning{% elif c.status == 'approved' %}success{% else %}secondary{% endif %} rounded-pill" style="font-size:0.65rem;">{{ c.get_status_display }}</span></td>
+                                <td class="small">{{ c.beneficiary.phone }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="6" class="text-center text-muted py-3">لا توجد حالات متاحة</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="beneficiaries_section" style="display:none;">
+                <label class="form-label fw-semibold">اختر المستفيدين</label>
+                <div class="mb-2">
+                    <input type="text" id="benSearch" class="form-control mb-2" placeholder="بحث بالاسم..." oninput="filterBeneficiaries()">
+                </div>
+                <div class="table-responsive" style="max-height:400px;overflow-y:auto;">
+                    <table class="table table-hover table-sm mb-0" id="benTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width:40px;"><input type="checkbox" id="selectAllBens" onchange="toggleAllBens()"></th>
+                                <th>الاسم</th>
+                                <th>الهاتف</th>
+                                <th>العنوان</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for b in beneficiaries %}
+                            <tr class="ben-row">
+                                <td><input type="checkbox" name="beneficiary_ids" value="{{ b.id }}" class="ben-check"></td>
+                                <td>{{ b.full_name }}</td>
+                                <td class="small">{{ b.phone }}</td>
+                                <td class="small">{{ b.city|default:"" }}{% if b.district %} - {{ b.district }}{% endif %}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center text-muted py-3">لا يوجد مستفيدين نشطين</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="mb-3 mt-3">
+                <label class="form-label">ملاحظات عامة (تطبق على الكل)</label>
+                <textarea name="notes" class="form-control" rows="2"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> إضافة المحدد</button>
+            <a href="{% url 'occasion_detail' occasion.id %}" class="btn btn-outline-secondary">رجوع</a>
+        </form>
+    </div>
+</div>
+
+<script>
+function filterCases() {
+    var q = document.getElementById('caseSearch').value.toLowerCase();
+    document.querySelectorAll('.case-row').forEach(function(r) {
+        r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+}
+function filterBeneficiaries() {
+    var q = document.getElementById('benSearch').value.toLowerCase();
+    document.querySelectorAll('.ben-row').forEach(function(r) {
+        r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+}
+function toggleAllCases() {
+    var checked = document.getElementById('selectAllCases').checked;
+    document.querySelectorAll('.case-check').forEach(function(c) { c.checked = checked; });
+}
+function toggleAllBens() {
+    var checked = document.getElementById('selectAllBens').checked;
+    document.querySelectorAll('.ben-check').forEach(function(c) { c.checked = checked; });
+}
+
+document.querySelectorAll('input[name="member_type"]').forEach(function(r) {
+    r.addEventListener('change', function() {
+        document.getElementById('cases_section').style.display = this.value === 'case' ? '' : 'none';
+        document.getElementById('beneficiaries_section').style.display = this.value === 'beneficiary' ? '' : 'none';
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,584 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول - مؤسسة الماجد</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Cairo', 'Segoe UI', 'Traditional Arabic', Tahoma, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1a2a1a 0%, #2d4a2d 30%, #556B2F 60%, #3a5a1a 100%);
+            position: relative;
+            overflow: hidden;
+            padding: 20px;
+        }
+
+        /* Animated floating shapes */
+        .bg-shapes {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .bg-shapes span {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.08;
+            animation: floatUp linear infinite;
+        }
+        .bg-shapes span:nth-child(1) {
+            width: 300px; height: 300px;
+            background: radial-gradient(circle, #B8860B, transparent);
+            left: -5%; bottom: -5%;
+            animation-duration: 18s;
+            animation-delay: 0s;
+        }
+        .bg-shapes span:nth-child(2) {
+            width: 200px; height: 200px;
+            background: radial-gradient(circle, #DAA520, transparent);
+            right: 10%; top: -3%;
+            animation-duration: 22s;
+            animation-delay: -4s;
+        }
+        .bg-shapes span:nth-child(3) {
+            width: 150px; height: 150px;
+            background: radial-gradient(circle, #8B7355, transparent);
+            left: 20%; top: 15%;
+            animation-duration: 25s;
+            animation-delay: -8s;
+        }
+        .bg-shapes span:nth-child(4) {
+            width: 250px; height: 250px;
+            background: radial-gradient(circle, #6B8E23, transparent);
+            right: -2%; bottom: 30%;
+            animation-duration: 20s;
+            animation-delay: -2s;
+        }
+        .bg-shapes span:nth-child(5) {
+            width: 100px; height: 100px;
+            background: radial-gradient(circle, #CD853F, transparent);
+            left: 45%; top: -2%;
+            animation-duration: 15s;
+            animation-delay: -6s;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1) rotate(0deg); }
+            33% { transform: translateY(-30px) scale(1.05) rotate(120deg); }
+            66% { transform: translateY(-60px) scale(0.95) rotate(240deg); }
+            100% { transform: translateY(-90px) scale(1) rotate(360deg); }
+        }
+
+        /* Grid pattern overlay */
+        .grid-overlay {
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Gradient orbs */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .orb-1 {
+            width: 500px; height: 500px;
+            background: rgba(85, 107, 47, 0.15);
+            top: -10%; right: -5%;
+        }
+        .orb-2 {
+            width: 400px; height: 400px;
+            background: rgba(184, 134, 11, 0.1);
+            bottom: -10%; left: -5%;
+        }
+
+        /* Main card */
+        .login-wrapper {
+            position: relative;
+            z-index: 1;
+            width: 440px;
+            max-width: 100%;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 0;
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.3),
+                0 0 0 1px rgba(255, 255, 255, 0.05);
+            animation: cardEntrance 0.6s ease-out;
+            overflow: hidden;
+        }
+
+        @keyframes cardEntrance {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.97);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Top decorative bar */
+        .login-header {
+            background: linear-gradient(135deg, #556B2F, #6B8E23, #556B2F);
+            padding: 35px 30px 25px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .login-header::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 30% 50%, rgba(255,255,255,0.08), transparent 60%);
+        }
+        .login-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, rgba(184, 134, 11, 0.6), #B8860B, rgba(184, 134, 11, 0.6), transparent);
+        }
+
+        .login-logo {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            padding: 6px;
+            margin: 0 auto 12px;
+            border: 2px solid rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .login-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 50%;
+        }
+        .login-header h4 {
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.4rem;
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+        }
+        .login-header p {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.85rem;
+            margin-bottom: 0;
+            font-weight: 500;
+        }
+
+        /* Form body */
+        .login-body {
+            padding: 28px 30px 30px;
+        }
+
+        .form-floating-custom {
+            position: relative;
+            margin-bottom: 18px;
+        }
+        .form-floating-custom .input-icon {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #adb5bd;
+            font-size: 1.1rem;
+            z-index: 5;
+            transition: color 0.2s;
+            pointer-events: none;
+        }
+        .form-floating-custom .form-control {
+            padding-right: 42px;
+            padding-left: 14px;
+            height: 50px;
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
+            font-size: 0.95rem;
+            transition: all 0.25s;
+            background: #f8f9fa;
+        }
+        .form-floating-custom .form-control:focus {
+            border-color: #556B2F;
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(85, 107, 47, 0.1);
+        }
+        .form-floating-custom .form-control:focus ~ .input-icon {
+            color: #556B2F;
+        }
+        .form-floating-custom .form-control.is-invalid {
+            border-color: #dc3545;
+        }
+        .form-floating-custom .form-control.is-invalid ~ .input-icon {
+            color: #dc3545;
+        }
+        .form-floating-custom label {
+            position: absolute;
+            right: 42px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            pointer-events: none;
+            background: transparent;
+            padding: 0 4px;
+        }
+        .form-floating-custom .form-control:focus ~ label,
+        .form-floating-custom .form-control:not(:placeholder-shown) ~ label {
+            top: -8px;
+            right: 38px;
+            font-size: 0.75rem;
+            color: #556B2F;
+            background: #fff;
+            padding: 0 6px;
+            font-weight: 600;
+        }
+
+        /* Password toggle */
+        .password-toggle {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #adb5bd;
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 4px;
+            z-index: 5;
+            transition: color 0.2s;
+        }
+        .password-toggle:hover {
+            color: #556B2F;
+        }
+
+        /* Remember me */
+        .form-check-custom {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 22px;
+        }
+        .form-check-custom input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            border-radius: 5px;
+            border: 2px solid #ced4da;
+            cursor: pointer;
+            accent-color: #556B2F;
+        }
+        .form-check-custom label {
+            color: #495057;
+            font-size: 0.9rem;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        /* Submit button */
+        .btn-login {
+            width: 100%;
+            height: 50px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #556B2F, #6B8E23);
+            border: none;
+            color: #fff;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-login::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.5s;
+        }
+        .btn-login:hover::before {
+            transform: translateX(100%);
+        }
+        .btn-login:hover {
+            background: linear-gradient(135deg, #4a5f28, #5c7d1e);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(85, 107, 47, 0.35);
+        }
+        .btn-login:active {
+            transform: translateY(0);
+        }
+        .btn-login:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .btn-login .spinner-border {
+            width: 20px;
+            height: 20px;
+            border-width: 2px;
+        }
+
+        /* Error alert */
+        .error-alert {
+            background: rgba(220, 53, 69, 0.08);
+            border: 1px solid rgba(220, 53, 69, 0.2);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #b02a37;
+            font-size: 0.9rem;
+            font-weight: 500;
+            animation: shakeX 0.4s ease-out;
+        }
+        .error-alert i {
+            font-size: 1.1rem;
+        }
+
+        @keyframes shakeX {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-6px); }
+            40% { transform: translateX(6px); }
+            60% { transform: translateX(-4px); }
+            80% { transform: translateX(4px); }
+        }
+
+        /* 2FA section */
+        .otp-section {
+            margin-bottom: 18px;
+            padding: 16px;
+            background: rgba(85, 107, 47, 0.04);
+            border-radius: 12px;
+            border: 1px solid rgba(85, 107, 47, 0.1);
+        }
+        .otp-section .otp-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #556B2F;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+        }
+        .otp-section .form-control {
+            text-align: center;
+            font-size: 1.5rem;
+            letter-spacing: 8px;
+            font-weight: 700;
+            direction: ltr;
+            height: 50px;
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
+            background: #fff;
+        }
+        .otp-section .form-control:focus {
+            border-color: #556B2F;
+            box-shadow: 0 0 0 4px rgba(85, 107, 47, 0.1);
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            body { padding: 12px; }
+            .login-header { padding: 25px 20px 20px; }
+            .login-body { padding: 22px 20px 24px; }
+            .login-logo { width: 60px; height: 60px; }
+            .login-header h4 { font-size: 1.15rem; }
+        }
+
+        .register-footer {
+            text-align: center;
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px solid #e9ecef;
+        }
+        .register-footer a {
+            color: #556B2F;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .register-footer a:hover {
+            color: #3a4a1f;
+            text-decoration: underline;
+        }
+
+        /* Success message */
+        .success-message {
+            background: rgba(25, 135, 84, 0.08);
+            border: 1px solid rgba(25, 135, 84, 0.2);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #198754;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        .success-message i {
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background elements -->
+    <div class="bg-shapes">
+        <span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <div class="grid-overlay"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <!-- Login Card -->
+    <div class="login-wrapper">
+        <div class="login-card">
+
+            <!-- Header -->
+            <div class="login-header">
+                <div class="login-logo">
+                    <img src="/static/images/logo.png" alt="مؤسسة الماجد">
+                </div>
+                <h4>مؤسسة الماجد</h4>
+                <p>الجهاز الاداري</p>
+            </div>
+
+            <!-- Body -->
+            <div class="login-body">
+                {% if error %}
+                <div class="error-alert">
+                    <i class="bi bi-exclamation-circle-fill"></i>
+                    <span>{{ error }}</span>
+                </div>
+                {% endif %}
+
+                <form method="post" id="loginForm" novalidate>
+                    {% csrf_token %}
+
+                    {% if two_factor_required %}
+                    <input type="hidden" name="username" value="{{ username }}">
+
+                    <div class="otp-section">
+                        <div class="otp-label">
+                            <i class="bi bi-shield-lock-fill"></i>
+                            <span>رمز التحقق الثنائي</span>
+                        </div>
+                        <input type="text" name="otp_token" class="form-control"
+                               placeholder="000000" maxlength="6" inputmode="numeric"
+                               pattern="[0-9]*" autofocus required>
+                    </div>
+                    {% else %}
+                    <div class="form-floating-custom">
+                        <input type="text" name="username" class="form-control"
+                               id="username" placeholder=" " required autofocus
+                               value="{{ username|default:'' }}">
+                        <i class="bi bi-person-fill input-icon"></i>
+                        <label for="username">اسم المستخدم</label>
+                    </div>
+
+                    <div class="form-floating-custom">
+                        <input type="password" name="password" class="form-control"
+                               id="password" placeholder=" " required>
+                        <i class="bi bi-lock-fill input-icon"></i>
+                        <label for="password">كلمة المرور</label>
+                        <button type="button" class="password-toggle" onclick="togglePassword()" tabindex="-1">
+                            <i class="bi bi-eye-slash" id="toggleIcon"></i>
+                        </button>
+                    </div>
+
+                    <div class="form-check-custom">
+                        <input type="checkbox" name="remember" id="remember" {% if remember %}checked{% endif %}>
+                        <label for="remember">تذكرني</label>
+                    </div>
+                    {% endif %}
+
+                    <button type="submit" class="btn-login" id="submitBtn">
+                        <i class="bi bi-box-arrow-in-left" id="btnIcon"></i>
+                        <span id="btnText">{% if two_factor_required %}تأكيد{% else %}تسجيل الدخول{% endif %}</span>
+                        <div class="spinner-border spinner-border-sm d-none" id="btnSpinner" role="status"></div>
+                    </button>
+                </form>
+
+                    <div class="register-footer">
+                        <a href="{% url 'register' %}"><i class="bi bi-person-plus-fill"></i> إنشاء حساب جديد</a>
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Password visibility toggle
+        function togglePassword() {
+            var pwd = document.getElementById('password');
+            var icon = document.getElementById('toggleIcon');
+            if (pwd.type === 'password') {
+                pwd.type = 'text';
+                icon.className = 'bi bi-eye';
+            } else {
+                pwd.type = 'password';
+                icon.className = 'bi bi-eye-slash';
+            }
+        }
+
+        // Loading state on submit
+        document.getElementById('loginForm').addEventListener('submit', function() {
+            var btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            document.getElementById('btnIcon').className = 'd-none';
+            document.getElementById('btnText').textContent = 'جاري التحقق...';
+            document.getElementById('btnSpinner').classList.remove('d-none');
+        });
+
+        // OTP auto-submit on 6 digits
+        var otpInput = document.querySelector('input[name="otp_token"]');
+        if (otpInput) {
+            otpInput.addEventListener('input', function() {
+                if (this.value.length >= 6) {
+                    document.getElementById('submitBtn').click();
+                }
+            });
+        }
+    </script>
+</body>
+</html>

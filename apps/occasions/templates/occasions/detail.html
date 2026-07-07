@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}{{ occasion.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h5 class="mb-0 fw-bold"><i class="bi bi-calendar-event ms-1"></i>{{ occasion.name }}</h5>
+        <span class="badge rounded-pill bg-{% if occasion.status == 'active' %}success{% elif occasion.status == 'completed' %}secondary{% else %}danger{% endif %}">{{ occasion.get_status_display }}</span>
+        <span class="badge rounded-pill bg-info">{{ occasion.display_support_type }}</span>
+        {% if occasion.is_recurring %}<span class="badge rounded-pill bg-warning text-dark"><i class="bi bi-arrow-repeat"></i> سنوي</span>{% endif %}
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'occasion_add_members' occasion.id %}" class="btn btn-primary btn-sm"><i class="bi bi-person-plus"></i> إضافة أعضاء</a>
+        <a href="{% url 'occasion_export_excel' occasion.id %}" class="btn btn-success btn-sm"><i class="bi bi-file-earmark-excel"></i> Excel</a>
+        <a href="{% url 'occasion_export_pdf' occasion.id %}" class="btn btn-danger btn-sm"><i class="bi bi-file-earmark-pdf"></i> PDF</a>
+        <a href="{% url 'occasion_edit' occasion.id %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i></a>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="row g-2 mb-3">
+    <div class="col-md-3 col-6">
+        <div class="card border-0 shadow-sm text-center p-2">
+            <div class="h4 mb-0 fw-bold text-primary">{{ total_members }}</div>
+            <div class="small text-muted">إجمالي الأعضاء</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card border-0 shadow-sm text-center p-2">
+            <div class="h4 mb-0 fw-bold text-success">{{ completed_members }}</div>
+            <div class="small text-muted">تم</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card border-0 shadow-sm text-center p-2">
+            <div class="h4 mb-0 fw-bold text-warning">{{ total_members|add:"-"|add:completed_members }}</div>
+            <div class="small text-muted">قيد الانتظار</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card border-0 shadow-sm text-center p-2">
+            <div class="progress" style="height:8px;">
+                <div class="progress-bar bg-success" style="width:{{ progress }}%"></div>
+            </div>
+            <div class="small text-muted mt-1">{{ progress }}% إنجاز</div>
+        </div>
+    </div>
+</div>
+
+{% if occasion.description %}
+<div class="alert alert-light border mb-3 py-2">{{ occasion.description }}</div>
+{% endif %}
+
+{% if occasion.budget_enabled and occasion.budget_amount %}
+<div class="alert alert-info py-2 mb-3">
+    <i class="bi bi-cash-stack"></i> الميزانية: <strong>{{ occasion.budget_amount|intcomma }} ج.م</strong>
+    {% if occasion.start_date %} | {{ occasion.start_date|date:"Y/m/d" }}{% endif %}
+    {% if occasion.end_date %} → {{ occasion.end_date|date:"Y/m/d" }}{% endif %}
+</div>
+{% endif %}
+
+<!-- Members -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-2">
+        <h6 class="mb-0 fw-bold">الأعضاء ({{ total_members }})</h6>
+        <div>
+            <button class="btn btn-sm btn-outline-primary" onclick="selectAll()"><i class="bi bi-check-all"></i> تحديد الكل</button>
+            <button class="btn btn-sm btn-outline-secondary" onclick="deselectAll()"><i class="bi bi-x"></i> إلغاء الكل</button>
+            <button class="btn btn-sm btn-outline-success" onclick="bulkComplete()"><i class="bi bi-check-lg"></i> إنجاز المحدد</button>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="accordion" id="membersAccordion">
+            {% for m in members %}
+            <div class="accordion-item border-0 border-bottom">
+                <h2 class="accordion-header">
+                    <div class="accordion-button collapsed px-3 py-2" data-bs-toggle="collapse" data-bs-target="#member{{ forloop.counter }}">
+                        <div class="d-flex align-items-center w-100 gap-2">
+                            <form method="post" action="{% url 'member_toggle_complete' occasion.id m.id %}" style="display:contents;">
+                                {% csrf_token %}
+                                <div class="form-check">
+                                    <input class="form-check-input member-check" type="checkbox" value="{{ m.id }}" {% if m.completed %}checked{% endif %} onchange="this.form.submit()">
+                                </div>
+                            </form>
+                            <span class="fw-semibold small flex-grow-1 {% if m.completed %}text-decoration-line-through text-muted{% endif %}">
+                                {{ m.display_name }}
+                                <span class="badge bg-{% if m.member_type == 'case' %}primary{% else %}info{% endif %} rounded-pill ms-1" style="font-size:0.65rem;">
+                                    {{ m.get_member_type_display }}
+                                </span>
+                            </span>
+                            <span class="small text-muted">
+                                {% with tc=m.tasks.count %}{% with cc=m.completed_tasks_count %}
+                                {% if tc > 0 %}
+                                <span class="badge bg-{% if cc == tc %}success{% else %}warning{% endif %} rounded-pill">{{ cc }}/{{ tc }}</span>
+                                {% endif %}
+                                {% endwith %}{% endwith %}
+                            </span>
+                            <form method="post" action="{% url 'occasion_remove_member' occasion.id m.id %}" style="display:inline;" onsubmit="return confirm('حذف العضو؟')">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm text-danger border-0 p-0"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </div>
+                    </div>
+                </h2>
+                <div id="member{{ forloop.counter }}" class="accordion-collapse collapse" data-bs-parent="#membersAccordion">
+                    <div class="accordion-body px-3 py-2 bg-light">
+                        {% if m.notes %}<p class="small text-muted mb-2">{{ m.notes }}</p>{% endif %}
+
+                        <!-- Tasks -->
+                        <div class="mb-2">
+                            {% for t in m.tasks.all %}
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <form method="post" action="{% url 'task_toggle' occasion.id m.id t.id %}" style="display:contents;">
+                                    {% csrf_token %}
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" {% if t.status == 'completed' %}checked{% endif %} onchange="this.form.submit()">
+                                    </div>
+                                </form>
+                                <span class="small flex-grow-1 {% if t.status == 'completed' %}text-decoration-line-through text-muted{% endif %}">{{ t.task_name }}</span>
+                                <span class="badge bg-{% if t.status == 'completed' %}success{% elif t.status == 'cancelled' %}danger{% else %}secondary{% endif %} rounded-pill" style="font-size:0.6rem;">{{ t.get_status_display }}</span>
+                                <form method="post" action="{% url 'task_delete' occasion.id m.id t.id %}" style="display:inline;" onsubmit="return confirm('حذف المهمة؟')">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm text-danger border-0 p-0"><i class="bi bi-x-lg" style="font-size:0.7rem;"></i></button>
+                                </form>
+                            </div>
+                            {% empty %}
+                            <p class="small text-muted mb-1">لا توجد مهام</p>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Add task form -->
+                        <form method="post" action="{% url 'task_add' occasion.id m.id %}" class="d-flex gap-2">
+                            {% csrf_token %}
+                            <input type="text" name="task_name" class="form-control form-control-sm" placeholder="إضافة مهمة..." required>
+                            <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-plus-lg"></i></button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center text-muted py-4">
+                <i class="bi bi-people" style="font-size:2rem;"></i>
+                <p class="mt-2">لا يوجد أعضاء بعد</p>
+                <a href="{% url 'occasion_add_members' occasion.id %}" class="btn btn-primary btn-sm">إضافة أعضاء</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function selectAll() { document.querySelectorAll('.member-check').forEach(c => c.checked = true); }
+function deselectAll() { document.querySelectorAll('.member-check').forEach(c => c.checked = false); }
+function bulkComplete() {
+    var ids = [];
+    document.querySelectorAll('.member-check:checked').forEach(c => ids.push(c.value));
+    if (!ids.length) return alert('اختر أعضاء أولاً');
+    var csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    var form = document.createElement('form');
+    form.method = 'post';
+    form.action = '';
+    var ci = document.createElement('input'); ci.type = 'hidden'; ci.name = 'csrfmiddlewaretoken'; ci.value = csrf; form.appendChild(ci);
+    ids.forEach(id => { var i = document.createElement('input'); i.type = 'hidden'; i.name = 'bulk_complete'; i.value = id; form.appendChild(i); });
+    document.body.appendChild(form);
+    form.submit();
+}
+</script>
+{% endblock %}

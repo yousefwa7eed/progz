@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}موظف جديد{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center"><div class="col-md-8">
+    <div class="card"><div class="card-header bg-primary text-white"><h5 class="mb-0"><i class="bi bi-plus-lg"></i> موظف جديد</h5></div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-6 mb-3"><label class="form-label">الاسم الكامل *</label><input type="text" name="full_name" class="form-control" required></div>
+                <div class="col-md-6 mb-3"><label class="form-label">النوع *</label>
+                    <select name="employee_type" class="form-select" required>
+                        <option value="employee">موظف</option>
+                        <option value="volunteer">متطوع</option>
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3"><label class="form-label">المسمى الوظيفي</label><input type="text" name="position" class="form-control"></div>
+                <div class="col-md-6 mb-3"><label class="form-label">القسم</label><input type="text" name="department" class="form-control"></div>
+                <div class="col-md-4 mb-3"><label class="form-label">رقم الموبايل *</label><input type="text" name="phone" class="form-control" required></div>
+                <div class="col-md-4 mb-3"><label class="form-label">البريد</label><input type="email" name="email" class="form-control"></div>
+                <div class="col-md-4 mb-3"><label class="form-label">تاريخ التعيين</label><input type="date" name="hire_date" class="form-control"></div>
+                <div class="col-md-4 mb-3"><label class="form-label">نوع العقد</label>
+                    <select name="contract_type" class="form-select">
+                        <option value="full_time">دوام كامل</option>
+                        <option value="part_time">دوام جزئي</option>
+                        <option value="volunteer">متطوع</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3"><label class="form-label">الراتب</label><input type="number" name="salary" class="form-control" step="0.01"></div>
+                <div class="col-12 mb-3"><label class="form-label">المؤهلات</label><textarea name="qualifications" class="form-control" rows="2"></textarea></div>
+                <div class="col-12 mb-3"><label class="form-label">المهارات</label><textarea name="skills" class="form-control" rows="2"></textarea></div>
+                <div class="col-12 mb-3"><label class="form-label">ملاحظات</label><textarea name="notes" class="form-control" rows="2"></textarea></div>
+            </div>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> حفظ</button>
+            <a href="{% url 'employee_list' %}" class="btn btn-secondary">إلغاء</a>
+        </form>
+    </div></div>
+</div></div>
+{% endblock %}

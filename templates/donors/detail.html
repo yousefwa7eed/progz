@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}{{ donor.full_name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4><i class="bi bi-person"></i> {{ donor.full_name }}</h4>
+    <a href="{% url 'donor_edit' donor.id %}" class="btn btn-warning"><i class="bi bi-pencil"></i> تعديل</a>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-white"><h6 class="mb-0">معلومات المتبرع</h6></div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr><th>الكود</th><td>{{ donor.code }}</td></tr>
+                    <tr><th>النوع</th><td>{{ donor.get_donor_type_display }}</td></tr>
+                    <tr><th>رقم الموبايل</th><td>{{ donor.phone }}</td></tr>
+                    <tr><th>البريد</th><td>{{ donor.email|default:"--" }}</td></tr>
+                    <tr><th>المحافظة</th><td>{{ donor.get_city_display|default:"--" }}</td></tr>
+                    <tr><th>إجمالي التبرعات</th><td><strong>{{ donor.total_donations|floatformat:2|intcomma }} جنيه</strong></td></tr>
+                    <tr><th>منتظم</th><td>{% if donor.is_committed %}<i class="bi bi-check-circle text-success"></i> نعم{% else %}لا{% endif %}</td></tr>
+                    <tr><th>آخر تبرع</th><td>{{ donor.last_donation_date|date:"Y/m/d"|default:"--" }}</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-white"><h6 class="mb-0">التبرعات</h6></div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for d in donations %}
+                    <a href="{% url 'donation_detail' d.id %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between">
+                            <span>{{ d.code }}</span>
+                            <span>{{ d.amount|floatformat:2|intcomma }} جنيه</span>
+                        </div>
+                        <small class="text-muted">{{ d.receipt_date|date:"Y/m/d" }} - {{ d.get_donation_type_display }}</small>
+                    </a>
+                    {% empty %}
+                    <div class="list-group-item text-muted text-center">لا توجد تبرعات</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-white"><h6 class="mb-0">الكفالات</h6></div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for s in sponsorships %}
+                    <a href="{% url 'sponsorship_detail' s.id %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between">
+                            <span>{{ s.code }}</span>
+                            <span class="badge bg-{% if s.status == 'active' %}success{% else %}secondary{% endif %}">{{ s.get_status_display }}</span>
+                        </div>
+                        <small class="text-muted">{{ s.get_sponsorship_type_display }} - {{ s.monthly_amount|floatformat:0 }} جنيه/شهرياً</small>
+                    </a>
+                    {% empty %}
+                    <div class="list-group-item text-muted text-center">لا توجد كفالات</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

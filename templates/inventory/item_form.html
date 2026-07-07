@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}صنف جديد{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center"><div class="col-md-8">
+    <div class="card"><div class="card-header bg-primary text-white"><h5 class="mb-0"><i class="bi bi-plus-lg"></i> صنف جديد</h5></div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-6 mb-3"><label class="form-label">اسم الصنف *</label><input type="text" name="name" class="form-control" required></div>
+                <div class="col-md-6 mb-3"><label class="form-label">التصنيف *</label>
+                    <select name="category" class="form-select">
+                        <option value="">-- اختر --</option>
+                        {% for c in form.category.field.queryset %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3"><label class="form-label">الكمية *</label><input type="number" name="quantity" class="form-control" step="0.01" required></div>
+                <div class="col-md-4 mb-3"><label class="form-label">الحد الأدنى</label><input type="number" name="min_quantity" class="form-control" step="0.01"></div>
+                <div class="col-md-4 mb-3"><label class="form-label">الحد الأقصى</label><input type="number" name="max_quantity" class="form-control" step="0.01"></div>
+                <div class="col-md-4 mb-3"><label class="form-label">سعر الوحدة</label><input type="number" name="unit_price" class="form-control" step="0.01"></div>
+                <div class="col-md-4 mb-3"><label class="form-label">وحدة القياس *</label><input type="text" name="unit" class="form-control" required placeholder="كجم/قطعة/كرتون"></div>
+                <div class="col-md-4 mb-3"><label class="form-label">تاريخ انتهاء الصلاحية</label><input type="date" name="expiry_date" class="form-control"></div>
+                <div class="col-12 mb-3"><label class="form-label">موقع التخزين</label><input type="text" name="location" class="form-control"></div>
+                <div class="col-12 mb-3"><label class="form-label">ملاحظات</label><textarea name="notes" class="form-control" rows="2"></textarea></div>
+            </div>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> حفظ</button>
+            <a href="{% url 'inventory_list' %}" class="btn btn-secondary">إلغاء</a>
+        </form>
+    </div></div>
+</div></div>
+{% endblock %}

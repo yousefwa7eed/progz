@@ -1,0 +1,375 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}ملف الحالة {{ case.code }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h4 class="mb-0">
+            <i class="bi bi-folder"></i> ملف الحالة
+            <small class="text-muted fs-6">{{ case.code }}</small>
+        </h4>
+        <span class="badge bg-{% if case.priority == 'urgent' %}danger{% elif case.priority == 'high' %}warning{% else %}info{% endif %} fs-6 ms-2">
+            {{ case.get_priority_display }}
+        </span>
+        <span class="badge bg-{% if case.status == 'new' %}primary{% elif case.status == 'under_study' %}warning{% elif case.status == 'approved' %}success{% elif case.status == 'disbursed' %}info{% elif case.status == 'rejected' %}danger{% else %}secondary{% endif %} fs-6 ms-1">
+            {{ case.get_status_display }}
+        </span>
+    </div>
+    <div class="btn-group">
+        {% if case.status == 'under_study' %}
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#approveModal"><i class="bi bi-check-lg"></i> اعتماد</button>
+        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal"><i class="bi bi-x-lg"></i> رفض</button>
+        {% endif %}
+        {% if case.status == 'approved' %}
+        <form method="post" action="{% url 'case_disburse' case.id %}" style="display:inline">
+            {% csrf_token %}
+            <button class="btn btn-primary" type="submit"><i class="bi bi-cash"></i> صرف المساعدة</button>
+        </form>
+        {% endif %}
+        <a href="{% url 'case_list' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-right"></i> عودة</a>
+    </div>
+</div>
+
+<!-- تبويبات -->
+<ul class="nav nav-tabs nav-justified mb-3" id="caseTab" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab">
+            <i class="bi bi-info-circle"></i> المعلومات
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="features-tab" data-bs-toggle="tab" data-bs-target="#features" type="button" role="tab">
+            <i class="bi bi-list-check"></i> الخصائص
+            <span class="badge bg-primary rounded-pill">{{ features|length }}</span>
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="images-tab" data-bs-toggle="tab" data-bs-target="#images" type="button" role="tab">
+            <i class="bi bi-images"></i> الصور
+            <span class="badge bg-info rounded-pill">{{ images|length }}</span>
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="timeline-tab" data-bs-toggle="tab" data-bs-target="#timeline" type="button" role="tab">
+            <i class="bi bi-clock-history"></i> النشاطات
+            <span class="badge bg-secondary rounded-pill">{{ activities|length }}</span>
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="caseTabContent">
+
+    <!-- ======================== التبويب 1: المعلومات ======================== -->
+    <div class="tab-pane fade show active" id="info" role="tabpanel">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header bg-white d-flex align-items-center">
+                        <i class="bi bi-person-badge text-primary me-2"></i>
+                        <h6 class="mb-0">معلومات الحالة</h6>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-sm table-borderless mb-0">
+                            <tr>
+                                <th class="text-muted" style="width:130px">المستفيد</th>
+                                <td><a href="{% url 'beneficiary_detail' case.beneficiary.id %}" class="fw-semibold">{{ case.beneficiary.full_name }}</a></td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">كود المستفيد</th>
+                                <td>{{ case.beneficiary.code }}</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">نوع المساعدة</th>
+                                <td><span class="badge bg-secondary">{{ case.get_case_type_display }}</span></td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">الأولوية</th>
+                                <td>
+                                    <span class="badge bg-{% if case.priority == 'urgent' %}danger{% elif case.priority == 'high' %}warning{% else %}info{% endif %}">
+                                        {{ case.get_priority_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">الحالة</th>
+                                <td>
+                                    <span class="badge bg-{% if case.status == 'new' %}primary{% elif case.status == 'under_study' %}warning{% elif case.status == 'approved' %}success{% elif case.status == 'disbursed' %}info{% elif case.status == 'rejected' %}danger{% else %}secondary{% endif %}">
+                                        {{ case.get_status_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">الباحث الاجتماعي</th>
+                                <td>{{ case.assigned_to.full_name|default:'<span class="text-muted">--</span>' }}</td>
+                            </tr>
+                            {% if case.requested_amount %}
+                            <tr>
+                                <th class="text-muted">المبلغ المطلوب</th>
+                                <td><strong>{{ case.requested_amount|floatformat:2|intcomma }} {{ currency }}</strong></td>
+                            </tr>
+                            {% endif %}
+                            {% if case.approved_amount %}
+                            <tr>
+                                <th class="text-muted">المبلغ المعتمد</th>
+                                <td><strong class="text-success">{{ case.approved_amount|floatformat:2|intcomma }} {{ currency }}</strong></td>
+                            </tr>
+                            {% endif %}
+                            <tr>
+                                <th class="text-muted">تاريخ الإنشاء</th>
+                                <td>{{ case.created_at|date:"Y/m/d H:i" }}</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">آخر تحديث</th>
+                                <td>{{ case.updated_at|date:"Y/m/d H:i" }}</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">المرفقات</th>
+                                <td><span class="badge bg-info">{{ images|length }} صور</span> <span class="badge bg-primary">{{ features|length }} خاصية</span></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header bg-white d-flex align-items-center">
+                        <i class="bi bi-pencil-square text-success me-2"></i>
+                        <h6 class="mb-0">وصف الحالة</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-3">{{ case.description|linebreaks }}</p>
+                        {% if case.notes %}
+                        <hr>
+                        <h6 class="text-muted">ملاحظات</h6>
+                        <p class="mb-0">{{ case.notes|linebreaks }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================== التبويب 2: الخصائص ======================== -->
+    <div class="tab-pane fade" id="features" role="tabpanel">
+        <div class="card">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-list-check text-primary"></i> خصائص الحالة</h6>
+                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#featureModal">
+                    <i class="bi bi-plus-lg"></i> إضافة خاصية
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:30%">الخاصية</th>
+                            <th style="width:60%">القيمة</th>
+                            <th style="width:10%"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for f in features %}
+                        <tr>
+                            <td class="fw-semibold">{{ f.name }}</td>
+                            <td>{{ f.value|linebreaks }}</td>
+                            <td>
+                                <a href="{% url 'case_delete_feature' case.id f.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('حذف الخاصية {{ f.name }}؟')">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted py-4">
+                                <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                                لا توجد خصائص مضافة
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================== التبويب 3: الصور ======================== -->
+    <div class="tab-pane fade" id="images" role="tabpanel">
+        <div class="card">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-images text-info"></i> صور ومرفقات الحالة</h6>
+                <button class="btn btn-sm btn-info text-white" data-bs-toggle="modal" data-bs-target="#imageModal">
+                    <i class="bi bi-plus-lg"></i> إضافة صورة
+                </button>
+            </div>
+            <div class="card-body">
+                {% if images %}
+                <div class="row g-3">
+                    {% for img in images %}
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div class="card">
+                            <a href="{{ img.image.url }}" target="_blank">
+                                <img src="{{ img.image.url }}" class="card-img-top" alt="{{ img.label }}" style="height:150px;object-fit:cover">
+                            </a>
+                            <div class="card-body p-2">
+                                <div class="small text-truncate">{{ img.label }}</div>
+                                <div class="d-flex justify-content-between align-items-center mt-1">
+                                    <small class="text-muted">{{ img.uploaded_at|date:"Y/m/d" }}</small>
+                                    <a href="{% url 'case_delete_image' case.id img.id %}" class="btn btn-sm btn-outline-danger py-0" onclick="return confirm('حذف الصورة؟')">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-image fs-1 d-block mb-2"></i>
+                    <p>لا توجد صور مرفوعة</p>
+                    <button class="btn btn-info text-white" data-bs-toggle="modal" data-bs-target="#imageModal">
+                        <i class="bi bi-plus-lg"></i> إضافة صورة
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================== التبويب 4: النشاطات ======================== -->
+    <div class="tab-pane fade" id="timeline" role="tabpanel">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-clock-history text-secondary"></i> سجل النشاطات</h6>
+            </div>
+            <div class="card-body p-0">
+                {% if activities %}
+                <div class="list-group list-group-flush">
+                    {% for a in activities %}
+                    <div class="list-group-item border-start border-4 border-{% if a.activity_type == 'create' %}primary{% elif a.activity_type == 'approve' %}success{% elif a.activity_type == 'reject' %}danger{% elif a.activity_type == 'disburse' %}info{% else %}secondary{% endif %}">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>
+                                    {% if a.activity_type == 'create' %}<i class="bi bi-plus-circle text-primary"></i>
+                                    {% elif a.activity_type == 'approve' %}<i class="bi bi-check-circle text-success"></i>
+                                    {% elif a.activity_type == 'reject' %}<i class="bi bi-x-circle text-danger"></i>
+                                    {% elif a.activity_type == 'disburse' %}<i class="bi bi-cash-coin text-info"></i>
+                                    {% else %}<i class="bi bi-arrow-repeat text-secondary"></i>{% endif %}
+                                    {{ a.description }}
+                                </strong>
+                                <div class="small text-muted mt-1">
+                                    {% if a.performed_by %}{{ a.performed_by.full_name }} - {% endif %}
+                                    {% if a.old_status and a.new_status %}
+                                    {% if a.old_status %}<span class="badge bg-secondary">{{ a.old_status }}</span>{% endif %}
+                                    {% if a.old_status and a.new_status %}<i class="bi bi-arrow-left"></i>{% endif %}
+                                    {% if a.new_status %}<span class="badge bg-{% if a.new_status == 'approved' %}success{% elif a.new_status == 'rejected' %}danger{% elif a.new_status == 'disbursed' %}info{% elif a.new_status == 'new' %}primary{% else %}secondary{% endif %}">{{ a.new_status }}</span>{% endif %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <small class="text-muted text-nowrap">{{ a.created_at|date:"Y/m/d H:i" }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-clock-history fs-1 d-block mb-2"></i>
+                    <p>لا توجد نشاطات مسجلة</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal إضافة صورة -->
+<div class="modal fade" id="imageModal"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header bg-info text-white">
+        <h5 class="modal-title"><i class="bi bi-image"></i> إضافة صورة</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <form method="post" action="{% url 'case_add_image' case.id %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="modal-body">
+            <div class="mb-3">
+                <label class="form-label fw-semibold">اختر الصورة <span class="text-danger">*</span></label>
+                <input type="file" name="image" class="form-control" accept="image/*" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">تسمية الصورة</label>
+                <input type="text" name="label" class="form-control" placeholder="مثال: بطاقة شخصية، صورة عائلية، إيصال...">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="submit" class="btn btn-info text-white"><i class="bi bi-upload"></i> رفع</button>
+            <button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+        </div>
+    </form>
+</div></div></div>
+
+<!-- Modal إضافة خاصية -->
+<div class="modal fade" id="featureModal"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title"><i class="bi bi-plus-circle"></i> إضافة خاصية</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <form method="post" action="{% url 'case_add_feature' case.id %}">
+        {% csrf_token %}
+        <div class="modal-body">
+            <div class="mb-3">
+                <label class="form-label fw-semibold">اسم الخاصية <span class="text-danger">*</span></label>
+                <input type="text" name="name" class="form-control" placeholder="مثال: جهة الإحالة، نوع السكن، جهة العمل..." required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">القيمة <span class="text-danger">*</span></label>
+                <textarea name="value" class="form-control" rows="2" required></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> حفظ</button>
+            <button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+        </div>
+    </form>
+</div></div></div>
+
+{% if case.status == 'under_study' %}
+<div class="modal fade" id="approveModal"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header bg-success text-white"><h5 class="modal-title"><i class="bi bi-check-lg"></i> اعتماد الحالة</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+    <form method="post" action="{% url 'case_approve' case.id %}">
+        {% csrf_token %}
+        <div class="modal-body">
+            <div class="mb-3">
+                <label class="form-label fw-semibold">المبلغ المعتمد <span class="text-danger">*</span></label>
+                <div class="input-group">
+                    <input type="number" name="approved_amount" class="form-control" value="{{ case.requested_amount|default:0 }}" step="0.01" required>
+                    <span class="input-group-text">{{ currency }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="submit" class="btn btn-success"><i class="bi bi-check-lg"></i> اعتماد</button>
+            <button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+        </div>
+    </form>
+</div></div></div>
+
+<div class="modal fade" id="rejectModal"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header bg-danger text-white"><h5 class="modal-title"><i class="bi bi-x-lg"></i> رفض الحالة</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+    <form method="post" action="{% url 'case_reject' case.id %}">
+        {% csrf_token %}
+        <div class="modal-body">
+            <div class="mb-3">
+                <label class="form-label fw-semibold">سبب الرفض <span class="text-danger">*</span></label>
+                <textarea name="reject_reason" class="form-control" rows="3" required placeholder="اذكر سبب الرفض..."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="submit" class="btn btn-danger"><i class="bi bi-x-lg"></i> رفض</button>
+            <button class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+        </div>
+    </form>
+</div></div></div>
+{% endif %}
+{% endblock %}

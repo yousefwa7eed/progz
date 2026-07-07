@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}لوحة المالية{% endblock %}
+
+{% block content %}
+<h4><i class="bi bi-cash-stack"></i> لوحة المالية</h4>
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="stat-card bg-success-light"><div class="stat-number">{{ total_income|floatformat:0|intcomma }}</div><div class="stat-label">إجمالي الإيرادات</div></div></div>
+    <div class="col-md-3"><div class="stat-card bg-danger-light"><div class="stat-number">{{ total_expense|floatformat:0|intcomma }}</div><div class="stat-label">إجمالي المصروفات</div></div></div>
+    <div class="col-md-3"><div class="stat-card bg-info-light"><div class="stat-number">{{ balance|floatformat:0|intcomma }}</div><div class="stat-label">الرصيد</div></div></div>
+    <div class="col-md-3"><div class="stat-card bg-warning-light"><div class="stat-number">{{ bank_total|floatformat:0|intcomma }}</div><div class="stat-label">الرصيد البنكي</div></div></div>
+</div>
+<div class="row g-3">
+    <div class="col-md-4"><div class="card"><div class="card-header bg-white"><h6>دليل الحسابات</h6></div><div class="card-body p-0"><div class="list-group list-group-flush">{% for a in accounts %}<div class="list-group-item d-flex justify-content-between"><span>{{ a.code }} - {{ a.name }}</span><span>{{ a.current_balance|floatformat:0|intcomma }}</span></div>{% endfor %}</div></div></div></div>
+    <div class="col-md-8"><div class="card"><div class="card-header bg-white d-flex justify-content-between"><h6 class="mb-0">آخر القيود</h6><a href="{% url 'entry_list' %}" class="btn btn-sm btn-outline-primary">عرض الكل</a></div><div class="card-body p-0"><table class="table table-sm mb-0"><thead><tr><th>الرقم</th><th>النوع</th><th>المبلغ</th><th>البيان</th><th>التاريخ</th></tr></thead><tbody>{% for e in recent_entries %}<tr><td>{{ e.code }}</td><td><span class="badge bg-{% if e.entry_type == 'income' %}success{% else %}danger{% endif %}">{{ e.get_entry_type_display }}</span></td><td>{{ e.amount|floatformat:0|intcomma }}</td><td>{{ e.description|truncatechars:30 }}</td><td>{{ e.entry_date|date:"Y/m/d" }}</td></tr>{% endfor %}</tbody></table></div></div></div>
+</div>
+{% endblock %}

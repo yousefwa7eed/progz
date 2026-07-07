@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}تقرير التبرعات{% endblock %}
+
+{% block content %}
+<h4><i class="bi bi-cash-coin"></i> تقرير التبرعات</h4>
+<div class="row g-3 mb-3">
+    <div class="col-md-3"><div class="stat-card bg-success-light"><div class="stat-number">{{ total_amount|floatformat:0|intcomma }}</div><div class="stat-label">إجمالي التبرعات</div></div></div>
+    <div class="col-md-3"><div class="stat-card bg-primary-light"><div class="stat-number">{{ count|intcomma }}</div><div class="stat-label">عدد التبرعات</div></div></div>
+    <div class="col-md-3"><div class="stat-card bg-info-light"><div class="stat-number">{{ cash_total|floatformat:0|intcomma }}</div><div class="stat-label">نقداً</div></div></div>
+    <div class="col-md-3"><div class="stat-card bg-warning-light"><div class="stat-number">{{ bank_total|floatformat:0|intcomma }}</div><div class="stat-label">تحويل بنكي</div></div></div>
+</div>
+<div class="card"><div class="card-body">
+    <form method="get" class="row g-2 mb-3">
+        <div class="col-md-2"><select name="donation_type" class="form-select"><option value="">الكل</option><option value="general" {% if donation_type == 'general' %}selected{% endif %}>عام</option><option value="zakat" {% if donation_type == 'zakat' %}selected{% endif %}>زكاة</option><option value="sadaqah" {% if donation_type == 'sadaqah' %}selected{% endif %}>صدقة</option></select></div>
+        <div class="col-md-2"><input type="date" name="from" class="form-control" value="{{ from_date }}"></div>
+        <div class="col-md-2"><input type="date" name="to" class="form-control" value="{{ to_date }}"></div>
+        <div class="col-md-2"><button type="submit" class="btn btn-outline-primary w-100"><i class="bi bi-search"></i> تطبيق</button></div>
+    </form>
+    <div class="table-responsive">
+        <table class="table table-hover datatable">
+            <thead><tr><th>رقم الإيصال</th><th>المتبرع</th><th>النوع</th><th>المبلغ</th><th>طريقة الدفع</th><th>التاريخ</th></tr></thead>
+            <tbody>
+                {% for d in donations %}
+                <tr>
+                    <td>{{ d.receipt_number }}</td>
+                    <td>{% if d.is_anonymous %}متبرع مجهول{% else %}{{ d.donor.full_name|default:"--" }}{% endif %}</td>
+                    <td><span class="badge bg-{% if d.donation_type == 'zakat' %}success{% elif d.donation_type == 'sadaqah' %}info{% else %}primary{% endif %}">{{ d.get_donation_type_display }}</span></td>
+                    <td>{{ d.amount|floatformat:2|intcomma }}</td>
+                    <td>{{ d.get_payment_method_display }}</td>
+                    <td>{{ d.receipt_date|date:"Y/m/d" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div></div>
+{% endblock %}

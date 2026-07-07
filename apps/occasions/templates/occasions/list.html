@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}المناسبات والمواسم{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0 fw-bold"><i class="bi bi-calendar-event ms-1"></i>المناسبات والمواسم</h5>
+    <a href="{% url 'occasion_add' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> إضافة جديدة</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm text-center p-3">
+            <div class="h3 mb-0 fw-bold text-primary">{{ total_count }}</div>
+            <div class="text-muted small">إجمالي المناسبات</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm text-center p-3">
+            <div class="h3 mb-0 fw-bold text-success">{{ active_count }}</div>
+            <div class="text-muted small">نشط حالياً</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm text-center p-3">
+            <div class="h3 mb-0 fw-bold text-info">{{ total_count|add:"0" }}</div>
+            <div class="text-muted small">مستفيدين (تقديري)</div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="py-3">الاسم</th>
+                        <th class="py-3">نوع الدعم</th>
+                        <th class="py-3">الأعضاء</th>
+                        <th class="py-3">الميزانية</th>
+                        <th class="py-3">التاريخ</th>
+                        <th class="py-3">الحالة</th>
+                        <th class="py-3"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for o in occasions %}
+                    <tr>
+                        <td class="py-3"><a href="{% url 'occasion_detail' o.id %}" class="fw-semibold text-decoration-none">{{ o.name }}</a></td>
+                        <td class="py-3">{{ o.display_support_type }}</td>
+                        <td class="py-3"><span class="badge bg-secondary rounded-pill">{{ o.member_count }}</span></td>
+                        <td class="py-3">{% if o.budget_enabled %}{{ o.budget_amount|intcomma }} ج.م{% else %}--{% endif %}</td>
+                        <td class="py-3 small">{{ o.start_date|date:"Y/m/d" }}{% if o.end_date %} → {{ o.end_date|date:"Y/m/d" }}{% endif %}</td>
+                        <td class="py-3">
+                            <span class="badge rounded-pill bg-{% if o.status == 'active' %}success{% elif o.status == 'completed' %}secondary{% else %}danger{% endif %}">
+                                {{ o.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="py-3">
+                            <a href="{% url 'occasion_detail' o.id %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
+                            <a href="{% url 'occasion_edit' o.id %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="text-center text-muted py-4">لا توجد مناسبات بعد. <a href="{% url 'occasion_add' %}">أضف أول مناسبة</a></td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

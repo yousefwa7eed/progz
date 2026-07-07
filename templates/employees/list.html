@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}الموظفون{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4><i class="bi bi-people"></i> الموظفون</h4>
+    <a href="{% url 'employee_add' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> موظف جديد</a>
+</div>
+<div class="card"><div class="card-body">
+    <form method="get" class="row g-2 mb-3">
+        <div class="col-md-3"><div class="input-group"><input type="text" name="search" class="form-control auto-search" placeholder="بحث..." value="{{ search }}"><button type="button" class="btn btn-outline-secondary search-clear d-none" tabindex="-1">&times;</button></div></div>
+        <div class="col-md-2">
+            <select name="employee_type" class="form-select">
+                <option value="">الكل</option>
+                <option value="employee" {% if employee_type == 'employee' %}selected{% endif %}>موظف</option>
+                <option value="volunteer" {% if employee_type == 'volunteer' %}selected{% endif %}>متطوع</option>
+            </select>
+        </div>
+        <div class="col-md-2"><button type="submit" class="btn btn-outline-primary w-100"><i class="bi bi-search"></i> بحث</button></div>
+    </form>
+    <div class="table-responsive">
+        <table class="table table-hover datatable">
+            <thead><tr><th>الكود</th><th>الاسم</th><th>النوع</th><th>القسم</th><th>رقم الموبايل</th><th>الحالة</th><th>الإجراءات</th></tr></thead>
+            <tbody>
+                {% for e in employees %}
+                <tr>
+                    <td>{{ e.employee_code }}</td>
+                    <td><a href="{% url 'employee_detail' e.id %}">{{ e.full_name }}</a></td>
+                    <td><span class="badge bg-info">{{ e.get_employee_type_display }}</span></td>
+                    <td>{{ e.department|default:"--" }}</td>
+                    <td>{{ e.phone }}</td>
+                    <td>{% if e.is_active %}<span class="badge bg-success">نشط</span>{% else %}<span class="badge bg-danger">غير نشط</span>{% endif %}</td>
+                    <td><a href="{% url 'employee_detail' e.id %}" class="btn btn-sm btn-info"><i class="bi bi-eye"></i></a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div></div>
+{% endblock %}

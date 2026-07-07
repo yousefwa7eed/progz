@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}{{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4><i class="bi bi-building"></i> {{ project.name }}</h4>
+    <a href="{% url 'project_edit' project.id %}" class="btn btn-warning"><i class="bi bi-pencil"></i> تعديل</a>
+</div>
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-white"><h6 class="mb-0">معلومات المشروع</h6></div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr><th>الرمز</th><td>{{ project.code }}</td></tr>
+                    <tr><th>النوع</th><td>{{ project.get_project_type_display }}</td></tr>
+                    <tr><th>الحالة</th><td><span class="badge bg-{% if project.status == 'in_progress' %}success{% else %}primary{% endif %}">{{ project.get_status_display }}</span></td></tr>
+                    <tr><th>الميزانية</th><td>{{ project.total_budget|floatformat:2|intcomma }} جنيه</td></tr>
+                    <tr><th>المنصرف</th><td>{{ project.total_spent|floatformat:2|intcomma }} جنيه</td></tr>
+                    <tr><th>تاريخ البداية</th><td>{{ project.start_date|date:"Y/m/d" }}</td></tr>
+                    <tr><th>تاريخ النهاية</th><td>{{ project.end_date|date:"Y/m/d"|default:"--" }}</td></tr>
+                    <tr><th>عدد المستفيدين</th><td>{{ project.beneficiaries_count|intcomma }}</td></tr>
+                    <tr><th>مدير المشروع</th><td>{{ project.manager.full_name|default:"--" }}</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-white"><h6 class="mb-0">مراحل المشروع</h6></div>
+            <div class="card-body">
+                {% for ph in phases %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <strong>{{ ph.name }}</strong><br>
+                        <small>{{ ph.start_date|date:"Y/m/d" }} - {{ ph.end_date|date:"Y/m/d"|default:"--" }}</small>
+                    </div>
+                    <div class="text-start">
+                        <span class="badge bg-{% if ph.status == 'completed' %}success{% elif ph.status == 'in_progress' %}primary{% else %}secondary{% endif %}">{{ ph.get_status_display }}</span><br>
+                        <small>{{ ph.spent|floatformat:0|intcomma }} / {{ ph.budget|floatformat:0|intcomma }} جنيه</small>
+                    </div>
+                </div>
+                {% if not forloop.last %}<hr>{% endif %}
+                {% empty %}<p class="text-muted">لا توجد مراحل</p>{% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

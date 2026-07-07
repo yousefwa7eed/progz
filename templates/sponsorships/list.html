@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}الكفالات{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4><i class="bi bi-heart-fill"></i> الكفالات</h4>
+    <a href="{% url 'sponsorship_add' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> إضافة كفالة</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-md-4"><div class="input-group"><input type="text" name="search" class="form-control auto-search" placeholder="بحث..." value="{{ search }}"><button type="button" class="btn btn-outline-secondary search-clear d-none" tabindex="-1">&times;</button></div></div>
+            <div class="col-md-2">
+                <select name="type" class="form-select">
+                    <option value="">الكل</option>
+                    <option value="orphan" {% if type_filter == 'orphan' %}selected{% endif %}>يتيم</option>
+                    <option value="family" {% if type_filter == 'family' %}selected{% endif %}>أسرة</option>
+                    <option value="patient" {% if type_filter == 'patient' %}selected{% endif %}>مريض</option>
+                    <option value="student" {% if type_filter == 'student' %}selected{% endif %}>طالب</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="status" class="form-select">
+                    <option value="">الكل</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>نشطة</option>
+                    <option value="paused" {% if status_filter == 'paused' %}selected{% endif %}>متوقفة</option>
+                    <option value="expired" {% if status_filter == 'expired' %}selected{% endif %}>منتهية</option>
+                </select>
+            </div>
+            <div class="col-md-2"><button type="submit" class="btn btn-outline-primary w-100"><i class="bi bi-search"></i> بحث</button></div>
+        </form>
+        <div class="table-responsive">
+            <table class="table table-hover datatable">
+                <thead><tr><th>الرقم</th><th>الكفيل</th><th>المستفيد</th><th>النوع</th><th>المبلغ</th><th>المدفوع</th><th>الحالة</th><th>الإجراءات</th></tr></thead>
+                <tbody>
+                    {% for s in sponsorships %}
+                    <tr>
+                        <td>{{ s.code }}</td>
+                        <td>{{ s.sponsor.full_name }}</td>
+                        <td>{{ s.beneficiary.full_name }}</td>
+                        <td>{{ s.get_sponsorship_type_display }}</td>
+                        <td>{{ s.monthly_amount|floatformat:0|intcomma }}</td>
+                        <td>{{ s.total_paid|floatformat:0|intcomma }}</td>
+                        <td><span class="badge bg-{% if s.status == 'active' %}success{% elif s.status == 'paused' %}warning{% else %}secondary{% endif %}">{{ s.get_status_display }}</span></td>
+                        <td><a href="{% url 'sponsorship_detail' s.id %}" class="btn btn-sm btn-info"><i class="bi bi-eye"></i></a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}التبرعات{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4><i class="bi bi-gift"></i> التبرعات</h4>
+    <div>
+        <a href="{% url 'donation_add' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> تسجيل تبرع</a>
+        <a href="{% url 'donation_export_excel' %}" class="btn btn-success"><i class="bi bi-file-earmark-excel"></i> Excel</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-md-3">
+                <div class="input-group">
+                    <input type="text" name="search" class="form-control auto-search" placeholder="بحث..." value="{{ search }}">
+                    <button type="button" class="btn btn-outline-secondary search-clear d-none" tabindex="-1">&times;</button>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <select name="donation_type" class="form-select">
+                    <option value="">كل الأنواع</option>
+                    <option value="cash" {% if type_filter == 'cash' %}selected{% endif %}>نقدي</option>
+                    <option value="in_kind" {% if type_filter == 'in_kind' %}selected{% endif %}>عيني</option>
+                    <option value="electronic" {% if type_filter == 'electronic' %}selected{% endif %}>إلكتروني</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="transaction_type" class="form-select">
+                    <option value="">الكل</option>
+                    <option value="general" {% if txn_filter == 'general' %}selected{% endif %}>عام</option>
+                    <option value="zakat" {% if txn_filter == 'zakat' %}selected{% endif %}>زكاة</option>
+                    <option value="sadaqah" {% if txn_filter == 'sadaqah' %}selected{% endif %}>صدقة</option>
+                    <option value="sponsorship" {% if txn_filter == 'sponsorship' %}selected{% endif %}>كفالة</option>
+                    <option value="project" {% if txn_filter == 'project' %}selected{% endif %}>مشروع</option>
+                    <option value="endowment" {% if txn_filter == 'endowment' %}selected{% endif %}>وقف</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="date_from" class="form-control" value="{{ date_from }}" placeholder="من">
+            </div>
+            <div class="col-md-1">
+                <input type="date" name="date_to" class="form-control" value="{{ date_to }}" placeholder="إلى">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary w-100"><i class="bi bi-search"></i> بحث</button>
+            </div>
+        </form>
+
+        <div class="mb-2"><strong>الإجمالي: {{ total_amount|floatformat:2|intcomma }} جنيه</strong></div>
+
+        <div class="table-responsive">
+            <table class="table table-hover datatable">
+                <thead>
+                    <tr>
+                        <th>الرقم</th>
+                        <th>رقم الإيصال</th>
+                        <th>المتبرع</th>
+                        <th>المبلغ</th>
+                        <th>النوع</th>
+                        <th>المعاملة</th>
+                        <th>التاريخ</th>
+                        <th>الحالة</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in donations %}
+                    <tr>
+                        <td>{{ d.code }}</td>
+                        <td>{{ d.receipt_number }}</td>
+                        <td>{{ d.donor.full_name|default:d.donor_name|default:"متبرع" }}</td>
+                        <td>{{ d.amount|floatformat:2|intcomma }}</td>
+                        <td>{{ d.get_donation_type_display }}</td>
+                        <td><span class="badge bg-info">{{ d.get_transaction_type_display }}</span></td>
+                        <td>{{ d.receipt_date|date:"Y/m/d" }}</td>
+                        <td><span class="badge bg-{% if d.status == 'confirmed' %}success{% elif d.status == 'cancelled' %}danger{% else %}warning{% endif %}">{{ d.get_status_display }}</span></td>
+                        <td class="actions-cell">
+                            <a href="{% url 'donation_detail' d.id %}" class="btn btn-sm btn-info"><i class="bi bi-eye"></i></a>
+                            <a href="{% url 'donation_receipt' d.id %}" class="btn btn-sm btn-secondary" target="_blank"><i class="bi bi-printer"></i></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

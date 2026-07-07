@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}التقارير{% endblock %}
+
+{% block content %}
+<h4><i class="bi bi-file-earmark-bar-chart"></i> التقارير</h4>
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="card report-card">
+            <div class="card-body text-center">
+                <i class="bi bi-people display-4 text-primary"></i>
+                <h5>تقرير المستفيدين</h5>
+                <p class="text-muted">إحصائيات المستفيدين حسب النوع والعمر والجنسية</p>
+                <a href="{% url 'report_beneficiaries' %}" class="btn btn-outline-primary">عرض التقرير</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card report-card">
+            <div class="card-body text-center">
+                <i class="bi bi-cash-coin display-4 text-success"></i>
+                <h5>تقرير التبرعات</h5>
+                <p class="text-muted">تحليل التبرعات حسب النوع والشهر ونوع التمويل</p>
+                <a href="{% url 'report_donations' %}" class="btn btn-outline-success">عرض التقرير</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card report-card">
+            <div class="card-body text-center">
+                <i class="bi bi-cash-stack display-4 text-info"></i>
+                <h5>تقرير المالية</h5>
+                <p class="text-muted">إيرادات ومصروفات مع المقارنة الشهرية</p>
+                <a href="{% url 'report_finance' %}" class="btn btn-outline-info">عرض التقرير</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card report-card">
+            <div class="card-body text-center">
+                <i class="bi bi-heart display-4 text-danger"></i>
+                <h5>تقرير الكفالات</h5>
+                <p class="text-muted">إحصائيات الكفالات النشطة والمنتهية</p>
+                <a href="{% url 'report_sponsorships' %}" class="btn btn-outline-danger">عرض التقرير</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card report-card">
+            <div class="card-body text-center">
+                <i class="bi bi-building display-4 text-warning"></i>
+                <h5>تقرير المشاريع</h5>
+                <p class="text-muted">أداء المشاريع ومعدلات الإنجاز</p>
+                <a href="{% url 'report_projects' %}" class="btn btn-outline-warning">عرض التقرير</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card report-card">
+            <div class="card-body text-center">
+                <i class="bi bi-box display-4 text-secondary"></i>
+                <h5>تقرير المخزون</h5>
+                <p class="text-muted">حالة المخزون والأصناف المنخفضة</p>
+                <a href="{% url 'report_inventory' %}" class="btn btn-outline-secondary">عرض التقرير</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

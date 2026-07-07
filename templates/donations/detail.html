@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}تفاصيل التبرع {{ donation.code }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4><i class="bi bi-gift"></i> تبرع {{ donation.code }}</h4>
+    <a href="{% url 'donation_receipt' donation.id %}" class="btn btn-secondary no-print" target="_blank"><i class="bi bi-printer"></i> طباعة الإيصال</a>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-white"><h6 class="mb-0">معلومات التبرع</h6></div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr><th>الرقم</th><td>{{ donation.code }}</td></tr>
+                    <tr><th>رقم الإيصال</th><td>{{ donation.receipt_number }}</td></tr>
+                    <tr><th>تاريخ الإيصال</th><td>{{ donation.receipt_date|date:"Y/m/d" }}</td></tr>
+                    <tr><th>المتبرع</th><td>{{ donation.donor.full_name|default:donation.donor_name|default:"متبرع" }}</td></tr>
+                    <tr><th>المبلغ</th><td><strong>{{ donation.amount|floatformat:2|intcomma }} جنيه</strong></td></tr>
+                    <tr><th>نوع التبرع</th><td>{{ donation.get_donation_type_display }}</td></tr>
+                    <tr><th>طريقة الدفع</th><td>{{ donation.get_payment_method_display }}</td></tr>
+                    <tr><th>نوع المعاملة</th><td><span class="badge bg-info">{{ donation.get_transaction_type_display }}</span></td></tr>
+                    <tr><th>الحالة</th><td><span class="badge bg-{% if donation.status == 'confirmed' %}success{% elif donation.status == 'cancelled' %}danger{% else %}warning{% endif %}">{{ donation.get_status_display }}</span></td></tr>
+                    <tr><th>مسجل بواسطة</th><td>{{ donation.received_by.full_name|default:"--" }}</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-white"><h6 class="mb-0">معلومات إضافية</h6></div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    {% if donation.project %}
+                    <tr><th>المشروع</th><td>{{ donation.project.name }}</td></tr>
+                    {% endif %}
+                    {% if donation.is_zakat %}
+                    <tr><th>زكاة</th><td>نعم - سنة {{ donation.zakat_year }}</td></tr>
+                    {% endif %}
+                    {% if donation.notes %}
+                    <tr><th>ملاحظات</th><td>{{ donation.notes }}</td></tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

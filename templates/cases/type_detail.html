@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}{{ type_label }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0"><i class="bi bi-folder"></i> {{ type_label }}</h4>
+    <div>
+        <a href="{% url 'case_type_export' case_type %}" class="btn btn-success"><i class="bi bi-file-earmark-excel"></i> استخراج Excel</a>
+        <a href="{% url 'case_add' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> حالة جديدة</a>
+    </div>
+</div>
+
+<!-- الإحصائيات -->
+<div class="row g-2 mb-3">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white text-center py-2">
+            <div class="fs-3 fw-bold">{{ total|intcomma }}</div>
+            <div class="small">إجمالي الحالات</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white text-center py-2">
+            <div class="fs-3 fw-bold">{{ active|intcomma }}</div>
+            <div class="small">نشطة</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white text-center py-2">
+            <div class="fs-3 fw-bold">{{ completed|intcomma }}</div>
+            <div class="small">منتهية</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white text-center py-2">
+            <div class="fs-3 fw-bold">{{ urgent|intcomma }}</div>
+            <div class="small">عاجلة</div>
+        </div>
+    </div>
+</div>
+
+<!-- جدول الحالات -->
+<div class="card">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="bi bi-list"></i> حالات {{ type_label }}</h6>
+        <span class="badge bg-primary">{{ total }} حالة</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover datatable mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>الرقم</th>
+                        <th>المستفيد</th>
+                        <th>الأولوية</th>
+                        <th>المبلغ</th>
+                        <th>الحالة</th>
+                        <th>الباحث</th>
+                        <th>التاريخ</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in cases %}
+                    <tr>
+                        <td>{{ c.code }}</td>
+                        <td><a href="{% url 'beneficiary_detail' c.beneficiary.id %}" class="fw-semibold">{{ c.beneficiary.full_name }}</a></td>
+                        <td>
+                            <span class="badge bg-{% if c.priority == 'urgent' %}danger{% elif c.priority == 'high' %}warning{% else %}info{% endif %}">
+                                {{ c.get_priority_display }}
+                            </span>
+                        </td>
+                        <td>{{ c.requested_amount|floatformat:0|intcomma|default:"--" }} {{ currency }}</td>
+                        <td>
+                            <span class="badge bg-{% if c.status == 'new' %}primary{% elif c.status == 'under_study' %}warning{% elif c.status == 'approved' %}success{% elif c.status == 'disbursed' %}info{% elif c.status == 'rejected' %}danger{% else %}secondary{% endif %}">
+                                {{ c.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ c.assigned_to.full_name|default:"--" }}</td>
+                        <td>{{ c.created_at|date:"Y/m/d" }}</td>
+                        <td>
+                            <a href="{% url 'case_detail' c.id %}" class="btn btn-sm btn-info"><i class="bi bi-eye"></i></a>
+                            <a href="{% url 'case_delete' c.id %}" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

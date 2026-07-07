@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}تقرير الكفالات{% endblock %}
+
+{% block content %}
+<h4><i class="bi bi-heart"></i> تقرير الكفالات</h4>
+<div class="row g-3 mb-3">
+    <div class="col-md-4"><div class="stat-card bg-primary-light"><div class="stat-number">{{ active|intcomma }}</div><div class="stat-label">كفالات نشطة</div></div></div>
+    <div class="col-md-4"><div class="stat-card bg-success-light"><div class="stat-number">{{ total_monthly|floatformat:0|intcomma }}</div><div class="stat-label">الإجمالي الشهري</div></div></div>
+    <div class="col-md-4"><div class="stat-card bg-info-light"><div class="stat-number">{{ by_status|length|intcomma }}</div><div class="stat-label">عدد الحالات</div></div></div>
+</div>
+<div class="row g-3">
+    <div class="col-md-6"><div class="card"><div class="card-header bg-white"><h6>حسب النوع</h6></div><div class="card-body"><table class="table table-sm">{% for t in by_type %}<tr><td>{{ t.sponsorship_type }}</td><td>{{ t.count }}</td></tr>{% endfor %}</table></div></div></div>
+    <div class="col-md-6"><div class="card"><div class="card-header bg-white"><h6>حسب الحالة</h6></div><div class="card-body"><table class="table table-sm">{% for s in by_status %}<tr><td>{{ s.status }}</td><td>{{ s.count }}</td></tr>{% endfor %}</table></div></div></div>
+</div>
+<div class="card mt-3"><div class="card-body">
+    <div class="table-responsive">
+        <table class="table table-hover datatable">
+            <thead><tr><th>الكفيل</th><th>المستفيد</th><th>المبلغ</th><th>الحالة</th></tr></thead>
+            <tbody>{% for s in sponsorships %}<tr><td>{{ s.sponsor.full_name|default:"--" }}</td><td>{{ s.beneficiary.full_name|default:"--" }}</td><td>{{ s.monthly_amount|floatformat:2|intcomma }}</td><td><span class="badge bg-{% if s.is_active %}success{% else %}secondary{% endif %}">{% if s.is_active %}نشط{% else %}منتهي{% endif %}</span></td></tr>{% endfor %}</tbody>
+        </table>
+    </div>
+</div></div>
+{% endblock %}
