@@ -19,12 +19,18 @@ from apps.finance.models import FinancialEntry
 from apps.cases.models import Case
 from apps.inventory.models import InventoryItem
 from apps.occasions.models import Occasion
+from apps.utils.rate_limit import login_limiter, register_limiter
 
 
 def register_view(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
     if request.method == 'POST':
+        ip = request.META.get('REMOTE_ADDR', '')
+        if not register_limiter.is_allowed(ip):
+            return render(request, 'registration/register.html', {
+                'errors': ['محاولات كثيرة جداً. حاول مرة أخرى بعد ساعة'],
+            })
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password', '')
         password_confirm = request.POST.get('password_confirm', '')
@@ -67,6 +73,12 @@ def login_view(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
     if request.method == 'POST':
+        ip = request.META.get('REMOTE_ADDR', '')
+        if not login_limiter.is_allowed(ip):
+            retry = login_limiter.get_retry_after(ip)
+            return render(request, 'registration/login.html', {
+                'error': f'محاولات كثيرة جداً. حاول مرة أخرى بعد {retry} ثانية',
+            })
         username = request.POST.get('username')
         password = request.POST.get('password')
         otp_token = request.POST.get('otp_token', '')

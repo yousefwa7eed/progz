@@ -38,6 +38,10 @@ class Occasion(models.Model):
         ordering = ['-created_at']
         verbose_name = 'مناسبة'
         verbose_name_plural = 'المناسبات والمواسم'
+        indexes = [
+            models.Index(fields=['status']),
+            models.Index(fields=['support_type']),
+        ]
 
     def __str__(self):
         return self.name
@@ -73,6 +77,11 @@ class OccasionMember(models.Model):
         ordering = ['added_at']
         verbose_name = 'عضو مناسبة'
         verbose_name_plural = 'أعضاء المناسبات'
+        indexes = [
+            models.Index(fields=['occasion']),
+            models.Index(fields=['member_type']),
+            models.Index(fields=['completed']),
+        ]
 
     def __str__(self):
         if self.member_type == 'case' and self.case:
@@ -118,6 +127,10 @@ class OccasionTask(models.Model):
         ordering = ['created_at']
         verbose_name = 'مهمة'
         verbose_name_plural = 'المهام'
+        indexes = [
+            models.Index(fields=['member']),
+            models.Index(fields=['status']),
+        ]
 
     def __str__(self):
         return self.task_name

@@ -82,6 +82,9 @@ class Attendance(models.Model):
         verbose_name = _("حضور")
         verbose_name_plural = _("الحضور والانصراف")
         unique_together = ['employee', 'date']
+        indexes = [
+            models.Index(fields=['date']),
+        ]
 
     def __str__(self):
         return f"{self.employee.full_name} - {self.date}"
@@ -118,6 +121,11 @@ class Task(models.Model):
         ordering = ['-created_at']
         verbose_name = _("مهمة")
         verbose_name_plural = _("المهام")
+        indexes = [
+            models.Index(fields=['assigned_to']),
+            models.Index(fields=['status']),
+            models.Index(fields=['priority']),
+        ]
 
     def __str__(self):
         return self.title

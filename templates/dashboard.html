@@ -13,12 +13,12 @@
             <p class="mb-1" style="color:#556B2F;">مؤسسة الماجد - الجهاز الاداري</p>
             <p class="mb-0 small" style="color:#B8860B;">
                 <span class="ms-3"><i class="bi bi-people"></i> {{ total_beneficiaries|intcomma }} مستفيد</span>
-                <span class="ms-3"><i class="bi bi-gift"></i> {{ total_donations|floatformat:0|intcomma }} ريال تبرعات</span>
+                <span class="ms-3"><i class="bi bi-gift"></i> {{ total_donations|floatformat:0|intcomma }} جنيه تبرعات</span>
                 <span><i class="bi bi-heart-fill"></i> {{ active_sponsorships }} كفالة</span>
             </p>
         </div>
         <div class="col-md-auto text-center">
-            <img src="/static/images/logo.png" alt="شعار المؤسسة" style="height:70px;">
+            <img src="/static/images/logo.png" alt="شعار المؤسسة" style="height:70px;" loading="lazy">
         </div>
     </div>
 </div>
@@ -119,7 +119,7 @@
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
                 <h6 class="mb-0 fw-bold"><i class="bi bi-bar-chart-fill ms-1"></i>التبرعات الشهرية</h6>
-                <span class="badge bg-primary rounded-pill">{{ month_donations|floatformat:0|intcomma }} ريال هذا الشهر</span>
+                <span class="badge bg-primary rounded-pill">{{ month_donations|floatformat:0|intcomma }} جنيه هذا الشهر</span>
             </div>
             <div class="card-body">
                 <canvas id="donationChart" height="280"></canvas>
@@ -163,7 +163,7 @@
                         <div class="fw-semibold small">تبرعات هذا الشهر</div>
                         <div class="text-muted" style="font-size:0.75rem;">إجمالي التبرعات الواردة</div>
                     </div>
-                    <span class="badge bg-success rounded-pill">{{ month_donations|floatformat:0|intcomma }} ريال</span>
+                    <span class="badge bg-success rounded-pill">{{ month_donations|floatformat:0|intcomma }} جنيه</span>
                 </a>
                 <a href="{% url 'inventory_list' %}" class="list-group-item list-group-item-action d-flex align-items-center py-3">
                     <span class="badge bg-danger rounded-circle me-3" style="width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;font-size:0.9rem;"><i class="bi bi-box-seam"></i></span>
@@ -231,7 +231,7 @@
                             <tr>
                                 <td class="py-3"><span class="fw-semibold">{{ d.code }}</span></td>
                                 <td class="py-3">{{ d.donor.full_name|default:d.donor_name|default:"متبرع" }}</td>
-                                <td class="py-3 fw-semibold text-success">{{ d.amount|floatformat:2|intcomma }} ريال</td>
+                                <td class="py-3 fw-semibold text-success">{{ d.amount|floatformat:2|intcomma }} جنيه</td>
                                 <td class="py-3 text-muted small">{{ d.created_at|date:"Y/m/d" }}</td>
                             </tr>
                             {% empty %}
@@ -316,7 +316,7 @@ new Chart(document.getElementById('donationChart'), {
         animation: { duration: 1200, easing: 'easeOutQuart' },
         plugins: {
             legend: { display: false },
-            tooltip: { callbacks: { label: function(ctx) { return ctx.parsed.y.toLocaleString() + ' ريال'; } } }
+            tooltip: { callbacks: { label: function(ctx) { return ctx.parsed.y.toLocaleString() + ' جنيه'; } } }
         },
         scales: {
             y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { callback: function(v) { return v.toLocaleString(); } } },
@@ -365,7 +365,7 @@ new Chart(document.getElementById('donationTypeChart'), {
         animation: { duration: 1400, easing: 'easeOutQuart' },
         plugins: {
             legend: { position: 'bottom', labels: { padding: 12, usePointStyle: true, pointStyle: 'circle' } },
-            tooltip: { callbacks: { label: function(ctx) { return ctx.label + ': ' + ctx.parsed.toLocaleString() + ' ريال'; } } }
+            tooltip: { callbacks: { label: function(ctx) { return ctx.label + ': ' + ctx.parsed.toLocaleString() + ' جنيه'; } } }
         }
     }
 });

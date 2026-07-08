@@ -1,8 +1,8 @@
 from django.core.validators import RegexValidator
 
 egypt_phone = RegexValidator(
-    regex=r'^01[0-9]{9}$',
-    message='رقم الموبايل المصري من 11 رقم مثال: 01234567890'
+    regex=r'^(\+20|0)1[0-9]{9}$',
+    message='رقم الموبايل المصري: 01234567890 أو +201234567890'
 )
 
 egypt_national_id = RegexValidator(

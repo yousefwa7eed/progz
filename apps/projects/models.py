@@ -88,6 +88,10 @@ class ProjectPhase(models.Model):
         ordering = ['start_date']
         verbose_name = _("مرحلة مشروع")
         verbose_name_plural = _("مراحل المشروع")
+        indexes = [
+            models.Index(fields=['project']),
+            models.Index(fields=['status']),
+        ]
 
     def __str__(self):
         return f"{self.project.name} - {self.name}"

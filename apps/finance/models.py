@@ -67,6 +67,9 @@ class BankAccount(models.Model):
     class Meta:
         verbose_name = _("حساب بنكي")
         verbose_name_plural = _("الحسابات البنكية")
+        indexes = [
+            models.Index(fields=['is_active']),
+        ]
 
     def __str__(self):
         return f"{self.bank_name} - {self.account_number}"
@@ -91,7 +94,7 @@ class FinancialEntry(models.Model):
     entry_type = models.CharField(max_length=20, choices=ENTRY_TYPES, verbose_name=_("نوع القيد"))
     entry_date = models.DateField(verbose_name=_("تاريخ القيد"))
     amount = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_("المبلغ"))
-    currency = models.CharField(max_length=3, default='SAR', verbose_name=_("العملة"))
+    currency = models.CharField(max_length=3, default='EGP', verbose_name=_("العملة"))
     description = models.TextField(verbose_name=_("البيان"))
     account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='entries', verbose_name=_("الحساب"))
     donor = models.ForeignKey('donors.Donor', on_delete=models.SET_NULL, null=True, blank=True, related_name='entries', verbose_name=_("متبرع"))
@@ -131,7 +134,7 @@ class FinancialEntry(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.code} - {self.amount} SAR"
+        return f"{self.code} - {self.amount} ج.م"
 
     def save(self, *args, **kwargs):
         if not self.code:

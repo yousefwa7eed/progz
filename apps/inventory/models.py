@@ -85,6 +85,11 @@ class InventoryTransaction(models.Model):
         ordering = ['-created_at']
         verbose_name = _("حركة مخزنية")
         verbose_name_plural = _("الحركات المخزنية")
+        indexes = [
+            models.Index(fields=['item']),
+            models.Index(fields=['transaction_type']),
+            models.Index(fields=['created_at']),
+        ]
 
     def __str__(self):
         return f"{self.item.name} - {self.get_transaction_type_display()} - {self.quantity}"

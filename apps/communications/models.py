@@ -40,6 +40,13 @@ class Communication(models.Model):
         ordering = ['-sent_at']
         verbose_name = _("مراسلة")
         verbose_name_plural = _("المراسلات")
+        indexes = [
+            models.Index(fields=['sender']),
+            models.Index(fields=['beneficiary']),
+            models.Index(fields=['donor']),
+            models.Index(fields=['status']),
+            models.Index(fields=['sent_at']),
+        ]
 
     def __str__(self):
         return f"{self.get_communication_type_display()} - {self.subject or 'بدون موضوع'}"

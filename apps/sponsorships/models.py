@@ -85,6 +85,10 @@ class SponsorshipPayment(models.Model):
         verbose_name = _("دفعة كفالة")
         verbose_name_plural = _("دفعات الكفالات")
         unique_together = ['sponsorship', 'month', 'year']
+        indexes = [
+            models.Index(fields=['sponsorship']),
+            models.Index(fields=['payment_date']),
+        ]
 
     def __str__(self):
         return f"{self.sponsorship.code} - {self.month}/{self.year}"

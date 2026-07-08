@@ -93,6 +93,9 @@ class CaseActivity(models.Model):
         ordering = ['-created_at']
         verbose_name = _("نشاط حالة")
         verbose_name_plural = _("نشاطات الحالات")
+        indexes = [
+            models.Index(fields=['case']),
+        ]
 
     def __str__(self):
         return f"{self.case.code} - {self.activity_type}"
@@ -109,6 +112,9 @@ class CaseImage(models.Model):
         ordering = ['-uploaded_at']
         verbose_name = _("صورة حالة")
         verbose_name_plural = _("صور الحالات")
+        indexes = [
+            models.Index(fields=['case']),
+        ]
 
     def __str__(self):
         return f"{self.case.code} - {self.label}"
@@ -124,6 +130,9 @@ class CaseFeature(models.Model):
         ordering = ['name']
         verbose_name = _("خاصية حالة")
         verbose_name_plural = _("خصائص الحالات")
+        indexes = [
+            models.Index(fields=['case']),
+        ]
 
     def __str__(self):
         return f"{self.case.code} - {self.name}: {self.value}"

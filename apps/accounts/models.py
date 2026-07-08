@@ -57,6 +57,11 @@ class User(AbstractUser):
         ordering = ['-date_joined']
         verbose_name = _("مستخدم")
         verbose_name_plural = _("المستخدمين")
+        indexes = [
+            models.Index(fields=['is_deleted']),
+            models.Index(fields=['otp_enabled']),
+            models.Index(fields=['role']),
+        ]
 
     def __str__(self):
         return self.full_name or self.username

@@ -63,6 +63,10 @@ class Notification(models.Model):
         ordering = ['-created_at']
         verbose_name = _("إشعار")
         verbose_name_plural = _("الإشعارات")
+        indexes = [
+            models.Index(fields=['user']),
+            models.Index(fields=['is_read']),
+        ]
 
     def __str__(self):
         return self.title

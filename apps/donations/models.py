@@ -35,7 +35,7 @@ class Donation(models.Model):
     donation_type = models.CharField(max_length=20, choices=DONATION_TYPES, verbose_name=_("نوع التبرع"))
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS, default='cash', verbose_name=_("طريقة الدفع"))
     amount = models.DecimalField(max_digits=15, decimal_places=2, default=0, verbose_name=_("المبلغ"))
-    currency = models.CharField(max_length=3, default='SAR', verbose_name=_("العملة"))
+    currency = models.CharField(max_length=3, default='EGP', verbose_name=_("العملة"))
     items = models.JSONField(default=list, blank=True, verbose_name=_("الأصناف (للعيني)"))
     transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES, default='general', verbose_name=_("نوع المعاملة"))
     campaign = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("الحملة"))
@@ -74,7 +74,7 @@ class Donation(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.code} - {self.amount} SAR"
+        return f"{self.code} - {self.amount} ج.م"
 
     def save(self, *args, **kwargs):
         if not self.code:
@@ -107,6 +107,9 @@ class DonationItem(models.Model):
     class Meta:
         verbose_name = _("صنف تبرع")
         verbose_name_plural = _("أصناف التبرعات")
+        indexes = [
+            models.Index(fields=['donation']),
+        ]
 
     def __str__(self):
         return f"{self.name} x{self.quantity}"

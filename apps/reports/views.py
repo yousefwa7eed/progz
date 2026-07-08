@@ -21,7 +21,7 @@ def reports_index(request):
 
 @login_required
 def report_beneficiaries(request):
-    qs = Beneficiary.objects.filter(is_active=True)
+    qs = Beneficiary.objects.select_related('branch').filter(is_active=True)
     from_date = request.GET.get('from', '')
     to_date = request.GET.get('to', '')
     if from_date:
@@ -41,7 +41,7 @@ def report_beneficiaries(request):
 
 @login_required
 def report_donations(request):
-    qs = Donation.objects.filter(status='confirmed')
+    qs = Donation.objects.select_related('donor', 'project', 'received_by').filter(status='confirmed')
     donation_type = request.GET.get('donation_type', '')
     from_date = request.GET.get('from', '')
     to_date = request.GET.get('to', '')
@@ -65,7 +65,7 @@ def report_donations(request):
 
 @login_required
 def report_finance(request):
-    qs = FinancialEntry.objects.filter(is_approved=True)
+    qs = FinancialEntry.objects.select_related('account', 'recorded_by', 'donor').filter(is_approved=True)
     from_date = request.GET.get('from', '')
     to_date = request.GET.get('to', '')
     if from_date:
@@ -105,7 +105,7 @@ def report_projects(request):
     by_status = Project.objects.values('status').annotate(count=Count('id'))
     total_budget = Project.objects.aggregate(total=Sum('total_budget'))['total'] or 0
     total_spent = Project.objects.aggregate(total=Sum('total_spent'))['total'] or 0
-    projects = Project.objects.all()[:100]
+    projects = Project.objects.select_related('manager').all()[:100]
     return render(request, 'reports/projects.html', {
         'total': total, 'active_count': active_count, 'completed': completed,
         'by_type': by_type, 'by_status': by_status,
@@ -121,8 +121,8 @@ def report_inventory(request):
     low_stock = InventoryItem.objects.filter(is_active=True, quantity__lte=F('min_quantity')).count()
     by_category = InventoryItem.objects.filter(is_active=True).values('category__name').annotate(
         count=Count('id'), total_qty=Sum('quantity')).order_by('category__name')
-    recent_transactions = InventoryTransaction.objects.order_by('-created_at')[:20]
-    items = InventoryItem.objects.filter(is_active=True).order_by('name')[:100]
+    recent_transactions = InventoryTransaction.objects.select_related('item__category').order_by('-created_at')[:20]
+    items = InventoryItem.objects.select_related('category').filter(is_active=True).order_by('name')[:100]
     return render(request, 'reports/inventory.html', {
         'total_items': total_items, 'total_quantity': total_quantity,
         'low_stock': low_stock, 'by_category': by_category,
