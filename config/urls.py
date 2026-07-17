@@ -26,6 +26,9 @@ urlpatterns = [
     path('register/', accounts_views.register_view, name='register'),
     path('profile/', accounts_views.profile_view, name='profile'),
     path('change-password/', accounts_views.change_password_view, name='change_password'),
+    path('users/', accounts_views.users_list_view, name='users_list'),
+    path('users/<uuid:user_id>/toggle-active/', accounts_views.user_toggle_active_view, name='user_toggle_active'),
+    path('activity/', accounts_views.activity_log_view, name='activity_log'),
 
     # Dashboard
     path('', accounts_views.dashboard_view, name='dashboard'),

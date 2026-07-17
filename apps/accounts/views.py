@@ -19,6 +19,7 @@ from apps.finance.models import FinancialEntry
 from apps.cases.models import Case
 from apps.inventory.models import InventoryItem
 from apps.occasions.models import Occasion
+from apps.audit.models import AuditLog
 from apps.utils.rate_limit import login_limiter, register_limiter
 
 
@@ -256,3 +257,111 @@ def api_dashboard_stats(request):
         'active_sponsorships': active_sponsorships,
         'active_projects': active_projects,
     })
+
+
+@login_required
+def users_list_view(request):
+    User = get_user_model()
+    users = User.objects.filter(is_deleted=False).select_related('role').order_by('-date_joined')
+
+    search = request.GET.get('search', '').strip()
+    if search:
+        users = users.filter(
+            Q(username__icontains=search) |
+            Q(full_name__icontains=search) |
+            Q(email__icontains=search) |
+            Q(phone__icontains=search)
+        )
+
+    role_filter = request.GET.get('role', '')
+    if role_filter:
+        users = users.filter(role__code=role_filter)
+
+    status_filter = request.GET.get('status', '')
+    if status_filter == 'active':
+        users = users.filter(is_active=True)
+    elif status_filter == 'inactive':
+        users = users.filter(is_active=False)
+
+    total_users = User.objects.filter(is_deleted=False).count()
+    active_users = User.objects.filter(is_deleted=False, is_active=True).count()
+    otp_users = User.objects.filter(is_deleted=False, otp_enabled=True).count()
+
+    from apps.accounts.models import Role
+    roles = Role.objects.all()
+
+    context = {
+        'users': users,
+        'roles': roles,
+        'total_users': total_users,
+        'active_users': active_users,
+        'otp_users': otp_users,
+        'search': search,
+        'role_filter': role_filter,
+        'status_filter': status_filter,
+    }
+    return render(request, 'registration/users_list.html', context)
+
+
+@login_required
+def user_toggle_active_view(request, user_id):
+    if not request.user.is_superuser:
+        messages.error(request, 'ليس لديك صلاحية لتعديل حالة المستخدمين')
+        return redirect('users_list')
+    User = get_user_model()
+    try:
+        target_user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        messages.error(request, 'المستخدم غير موجود')
+        return redirect('users_list')
+    if target_user.id == request.user.id:
+        messages.warning(request, 'لا يمكنك تعطيل حسابك الخاص')
+        return redirect('users_list')
+    target_user.is_active = not target_user.is_active
+    target_user.save()
+    status = 'تفعيل' if target_user.is_active else 'تعطيل'
+    messages.success(request, f'تم {status} حساب {target_user.full_name or target_user.username}')
+    return redirect('users_list')
+
+
+@login_required
+def activity_log_view(request):
+    logs = AuditLog.objects.select_related('actor').all()
+
+    action_filter = request.GET.get('action', '')
+    if action_filter:
+        logs = logs.filter(action=action_filter)
+
+    user_filter = request.GET.get('user', '')
+    if user_filter:
+        logs = logs.filter(actor__id=user_filter)
+
+    model_filter = request.GET.get('model', '')
+    if model_filter:
+        logs = logs.filter(model_name__icontains=model_filter)
+
+    date_from = request.GET.get('date_from', '')
+    if date_from:
+        logs = logs.filter(timestamp__date__gte=date_from)
+
+    date_to = request.GET.get('date_to', '')
+    if date_to:
+        logs = logs.filter(timestamp__date__lte=date_to)
+
+    logs = logs[:200]
+
+    User = get_user_model()
+    actors = User.objects.filter(audit_logs__isnull=False).distinct()
+
+    ACTIONS = AuditLog.ACTIONS
+    context = {
+        'logs': logs,
+        'actors': actors,
+        'actions': ACTIONS,
+        'action_filter': action_filter,
+        'user_filter': user_filter,
+        'model_filter': model_filter,
+        'date_from': date_from,
+        'date_to': date_to,
+    }
+    return render(request, 'registration/activity_log.html', context)

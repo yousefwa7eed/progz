@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}المستخدمين{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-12">
+        <h4><i class="bi bi-people-fill text-primary"></i> المستخدمين المسجلين</h4>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-3">
+        <div class="card text-center border-primary">
+            <div class="card-body py-3">
+                <h3 class="text-primary mb-0">{{ total_users }}</h3>
+                <small class="text-muted">إجمالي المستخدمين</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-success">
+            <div class="card-body py-3">
+                <h3 class="text-success mb-0">{{ active_users }}</h3>
+                <small class="text-muted">نشطين</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-warning">
+            <div class="card-body py-3">
+                <h3 class="text-warning mb-0">{{ otp_users }}</h3>
+                <small class="text-muted">مع تحقق ثنائي</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-secondary">
+            <div class="card-body py-3">
+                <h3 class="text-secondary mb-0">{{ total_users|add:"-"|add:active_users }}</h3>
+                <small class="text-muted">معطلين</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small">بحث</label>
+                <input type="text" name="search" class="form-control form-control-sm" placeholder="اسم، بريد، هاتف..." value="{{ search }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">الدور</label>
+                <select name="role" class="form-select form-select-sm">
+                    <option value="">الكل</option>
+                    {% for role in roles %}
+                    <option value="{{ role.code }}" {% if role_filter == role.code %}selected{% endif %}>{{ role.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">الحالة</label>
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">الكل</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>نشط</option>
+                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>معطل</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i> بحث</button>
+                <a href="{% url 'users_list' %}" class="btn btn-outline-secondary btn-sm">مسح</a>
+            </div>
+        </form>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0" id="usersTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>اسم المستخدم</th>
+                        <th>الاسم الكامل</th>
+                        <th>البريد الإلكتروني</th>
+                        <th>الهاتف</th>
+                        <th>الدور</th>
+                        <th>الحالة</th>
+                        <th>2FA</th>
+                        <th>تاريخ التسجيل</th>
+                        <th>آخر دخول</th>
+                        {% if user.is_superuser %}
+                        <th>إجراءات</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td><strong>{{ u.username }}</strong></td>
+                        <td>{{ u.full_name|default:'--' }}</td>
+                        <td>{{ u.email|default:'--' }}</td>
+                        <td>{{ u.phone|default:'--' }}</td>
+                        <td><span class="badge bg-info">{{ u.role.name|default:'--' }}</span></td>
+                        <td>
+                            {% if u.is_active %}
+                            <span class="badge bg-success">نشط</span>
+                            {% else %}
+                            <span class="badge bg-danger">معطل</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if u.otp_enabled %}
+                            <i class="bi bi-shield-check text-success" title="مفعّل"></i>
+                            {% else %}
+                            <i class="bi bi-shield-x text-muted" title="غير مفعّل"></i>
+                            {% endif %}
+                        </td>
+                        <td>{{ u.date_joined|date:'d/m/Y' }}</td>
+                        <td>{{ u.last_login|date:'d/m/Y H:i'|default:'لم يدخل' }}</td>
+                        {% if user.is_superuser %}
+                        <td>
+                            {% if u.id != user.id %}
+                            <a href="{% url 'user_toggle_active' u.id %}" class="btn btn-sm {% if u.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
+                               onclick="return confirm('{% if u.is_active %}تعطيل{% else %}تفعيل{% endif %} حساب {{ u.username }}؟')">
+                                {% if u.is_active %}<i class="bi bi-lock"></i>{% else %}<i class="bi bi-unlock"></i>{% endif %}
+                            </a>
+                            {% endif %}
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="11" class="text-center text-muted py-4">لا يوجد مستخدمين</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('#usersTable').DataTable({
+        language: { url: '//cdn.datatables.net/plug-ins/1.13.11/i18n/ar.json' },
+        pageLength: 25,
+        order: [[8, 'desc']],
+        searching: false,
+    });
+});
+</script>
+{% endblock %}
