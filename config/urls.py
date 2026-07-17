@@ -29,6 +29,11 @@ urlpatterns = [
     path('users/', accounts_views.users_list_view, name='users_list'),
     path('users/<uuid:user_id>/toggle-active/', accounts_views.user_toggle_active_view, name='user_toggle_active'),
     path('activity/', accounts_views.activity_log_view, name='activity_log'),
+    path('roles/', accounts_views.roles_list_view, name='roles_list'),
+    path('roles/add/', accounts_views.role_create_view, name='role_create'),
+    path('roles/<uuid:role_id>/edit/', accounts_views.role_edit_view, name='role_edit'),
+    path('roles/<uuid:role_id>/delete/', accounts_views.role_delete_view, name='role_delete'),
+    path('users/<uuid:user_id>/change-role/', accounts_views.user_change_role_view, name='user_change_role'),
 
     # Dashboard
     path('', accounts_views.dashboard_view, name='dashboard'),

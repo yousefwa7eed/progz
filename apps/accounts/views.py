@@ -365,3 +365,135 @@ def activity_log_view(request):
         'date_to': date_to,
     }
     return render(request, 'registration/activity_log.html', context)
+
+
+@login_required
+def roles_list_view(request):
+    if not request.user.is_superuser:
+        messages.error(request, 'ليس لديك صلاحية لإدارة الأدوار')
+        return redirect('dashboard')
+    from apps.accounts.models import Role
+    roles = Role.objects.annotate(users_count=Count('users')).order_by('priority')
+    context = {
+        'roles': roles,
+    }
+    return render(request, 'registration/roles_list.html', context)
+
+
+@login_required
+def role_create_view(request):
+    if not request.user.is_superuser:
+        messages.error(request, 'ليس لديك صلاحية لإدارة الأدوار')
+        return redirect('dashboard')
+    from apps.accounts.models import Role
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        code = request.POST.get('code', '').strip()
+        description = request.POST.get('description', '').strip()
+        priority = request.POST.get('priority', 0)
+        errors = []
+        if not name:
+            errors.append('اسم الدور مطلوب')
+        if not code:
+            errors.append('كود الدور مطلوب')
+        elif Role.objects.filter(code=code).exists():
+            errors.append('كود الدور موجود بالفعل')
+        if not errors:
+            Role.objects.create(
+                name=name,
+                code=code,
+                description=description,
+                priority=int(priority),
+                is_system=False,
+            )
+            messages.success(request, f'تم إنشاء الدور "{name}" بنجاح')
+            return redirect('roles_list')
+        return render(request, 'registration/role_form.html', {'errors': errors, 'name': name, 'code': code, 'description': description, 'priority': priority})
+    return render(request, 'registration/role_form.html')
+
+
+@login_required
+def role_edit_view(request, role_id):
+    if not request.user.is_superuser:
+        messages.error(request, 'ليس لديك صلاحية لإدارة الأدوار')
+        return redirect('dashboard')
+    from apps.accounts.models import Role
+    try:
+        role = Role.objects.get(id=role_id)
+    except Role.DoesNotExist:
+        messages.error(request, 'الدور غير موجود')
+        return redirect('roles_list')
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        code = request.POST.get('code', '').strip()
+        description = request.POST.get('description', '').strip()
+        priority = request.POST.get('priority', 0)
+        errors = []
+        if not name:
+            errors.append('اسم الدور مطلوب')
+        if not code:
+            errors.append('كود الدور مطلوب')
+        elif Role.objects.filter(code=code).exclude(id=role_id).exists():
+            errors.append('كود الدور موجود بالفعل')
+        if not errors:
+            role.name = name
+            role.code = code
+            role.description = description
+            role.priority = int(priority)
+            role.save()
+            messages.success(request, f'تم تعديل الدور "{name}" بنجاح')
+            return redirect('roles_list')
+        return render(request, 'registration/role_form.html', {'errors': errors, 'role': role, 'name': name, 'code': code, 'description': description, 'priority': priority})
+    return render(request, 'registration/role_form.html', {'role': role, 'name': role.name, 'code': role.code, 'description': role.description, 'priority': role.priority})
+
+
+@login_required
+def role_delete_view(request, role_id):
+    if not request.user.is_superuser:
+        messages.error(request, 'ليس لديك صلاحية لإدارة الأدوار')
+        return redirect('dashboard')
+    from apps.accounts.models import Role
+    try:
+        role = Role.objects.get(id=role_id)
+    except Role.DoesNotExist:
+        messages.error(request, 'الدور غير موجود')
+        return redirect('roles_list')
+    if role.is_system:
+        messages.warning(request, 'لا يمكن حذف الأدوار النظامية')
+        return redirect('roles_list')
+    users_count = role.users.count()
+    if request.method == 'POST':
+        role.delete()
+        messages.success(request, f'تم حذف الدور "{role.name}" بنجاح')
+        return redirect('roles_list')
+    return render(request, 'registration/role_confirm_delete.html', {'role': role, 'users_count': users_count})
+
+
+@login_required
+def user_change_role_view(request, user_id):
+    if not request.user.is_superuser:
+        messages.error(request, 'ليس لديك صلاحية لتعديل أدوار المستخدمين')
+        return redirect('users_list')
+    User = get_user_model()
+    from apps.accounts.models import Role
+    try:
+        target_user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        messages.error(request, 'المستخدم غير موجود')
+        return redirect('users_list')
+    if request.method == 'POST':
+        role_id = request.POST.get('role_id', '')
+        if role_id:
+            try:
+                role = Role.objects.get(id=role_id)
+                target_user.role = role
+                target_user.save()
+                messages.success(request, f'تم تغيير دور {target_user.full_name or target_user.username} إلى "{role.name}"')
+            except Role.DoesNotExist:
+                messages.error(request, 'الدور غير موجود')
+        else:
+            target_user.role = None
+            target_user.save()
+            messages.success(request, f'تم إزالة الدور من {target_user.full_name or target_user.username}')
+        return redirect('users_list')
+    return redirect('users_list')

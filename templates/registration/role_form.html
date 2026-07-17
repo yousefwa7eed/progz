@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if role %}تعديل الدور{% else %}إضافة دور جديد{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    {% if role %}
+                    <i class="bi bi-pencil"></i> تعديل الدور: {{ role.name }}
+                    {% else %}
+                    <i class="bi bi-plus-circle"></i> إضافة دور جديد
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if errors %}
+                <div class="alert alert-danger">
+                    <ul class="mb-0">
+                        {% for err in errors %}
+                        <li>{{ err }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">اسم الدور <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" value="{{ name|default:'' }}" required
+                               placeholder="مثال: مشرف، ناشط، متطوع">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">كود الدور <span class="text-danger">*</span></label>
+                        <input type="text" name="code" class="form-control" value="{{ code|default:'' }}" required
+                               placeholder="مثال: admin, activist, volunteer">
+                        <div class="form-text">يُستخدم كمعرّف فريد بالإنجليزية بدون مسافات</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">الوصف</label>
+                        <textarea name="description" class="form-control" rows="3" placeholder="وصف مختصر لمهام وصلاحيات هذا الدور">{{ description|default:'' }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">الأولوية</label>
+                        <input type="number" name="priority" class="form-control" value="{{ priority|default:0 }}" min="0">
+                        <div class="form-text">الأقل أولاً — يُستخدم لترتيب الأدوار في القوائم</div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> {% if role %}حفظ التعديلات{% else %}إضافة الدور{% endif %}</button>
+                        <a href="{% url 'roles_list' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-right"></i> رجوع</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

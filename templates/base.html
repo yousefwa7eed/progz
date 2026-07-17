@@ -147,6 +147,7 @@
                             {% if user.is_superuser %}
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{% url 'users_list' %}"><i class="bi bi-people"></i> المستخدمين</a></li>
+                            <li><a class="dropdown-item" href="{% url 'roles_list' %}"><i class="bi bi-shield-lock"></i> الأدوار والصلاحيات</a></li>
                             <li><a class="dropdown-item" href="{% url 'activity_log' %}"><i class="bi bi-clock-history"></i> سجل النشاط</a></li>
                             {% endif %}
                             <li><hr class="dropdown-divider"></li>

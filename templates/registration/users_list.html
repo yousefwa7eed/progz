@@ -102,7 +102,9 @@
                         <td>{{ u.full_name|default:'--' }}</td>
                         <td>{{ u.email|default:'--' }}</td>
                         <td>{{ u.phone|default:'--' }}</td>
-                        <td><span class="badge bg-info">{{ u.role.name|default:'--' }}</span></td>
+                        <td>
+                            <span class="badge bg-info">{{ u.role.name|default:'بدون دور' }}</span>
+                        </td>
                         <td>
                             {% if u.is_active %}
                             <span class="badge bg-success">نشط</span>
@@ -121,12 +123,17 @@
                         <td>{{ u.last_login|date:'d/m/Y H:i'|default:'لم يدخل' }}</td>
                         {% if user.is_superuser %}
                         <td>
-                            {% if u.id != user.id %}
-                            <a href="{% url 'user_toggle_active' u.id %}" class="btn btn-sm {% if u.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
-                               onclick="return confirm('{% if u.is_active %}تعطيل{% else %}تفعيل{% endif %} حساب {{ u.username }}؟')">
-                                {% if u.is_active %}<i class="bi bi-lock"></i>{% else %}<i class="bi bi-unlock"></i>{% endif %}
-                            </a>
-                            {% endif %}
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-info" title="تغيير الدور" onclick="openRoleModal('{{ u.id }}', '{{ u.username }}', '{{ u.role.id|default:'' }}')">
+                                    <i class="bi bi-shield-lock"></i>
+                                </button>
+                                {% if u.id != user.id %}
+                                <a href="{% url 'user_toggle_active' u.id %}" class="btn btn-outline-{% if u.is_active %}danger{% else %}success{% endif %}"
+                                   onclick="return confirm('{% if u.is_active %}تعطيل{% else %}تفعيل{% endif %} حساب {{ u.username }}؟')">
+                                    {% if u.is_active %}<i class="bi bi-lock"></i>{% else %}<i class="bi bi-unlock"></i>{% endif %}
+                                </a>
+                                {% endif %}
+                            </div>
                         </td>
                         {% endif %}
                     </tr>
@@ -152,5 +159,41 @@ $(document).ready(function() {
         searching: false,
     });
 });
+
+function openRoleModal(userId, username, currentRoleId) {
+    document.getElementById('changeRoleUserId').value = userId;
+    document.getElementById('changeRoleUsername').textContent = username;
+    var select = document.getElementById('changeRoleSelect');
+    select.value = currentRoleId;
+    new bootstrap.Modal(document.getElementById('roleModal')).show();
+}
 </script>
+
+<div class="modal fade" id="roleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title"><i class="bi bi-shield-lock"></i> تغيير الدور — <span id="changeRoleUsername"></span></h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" id="changeRoleForm">
+                {% csrf_token %}
+                <input type="hidden" name="" id="changeRoleUserId" value="">
+                <div class="modal-body">
+                    <label class="form-label">اختر الدور الجديد</label>
+                    <select name="role_id" id="changeRoleSelect" class="form-select">
+                        <option value="">بدون دور</option>
+                        {% for role in roles %}
+                        <option value="{{ role.id }}">{{ role.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> حفظ</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}
